@@ -9,28 +9,26 @@ from pedagogie.models import Note, Absence
 
 
 def get_user_context(user):
-    """Construit le contexte utilisateur pour l'agent IA"""
-    ctx = (
-        "Tu es un assistant IA de la Faculté des Sciences de Bizerte (FSB), "
-        "rattachée à l'Université de Carthage, Tunisie.\n"
-        "La FSB possède 6 départements: Mathématiques, Informatique, Physique, "
-        "Chimie, Sciences de la Vie, Sciences de la Terre.\n"
-        f"Utilisateur: {user.get_full_name()} — Rôle: {user.get_role_display()}\n"
-    )
-    if hasattr(user, 'etudiant_profile'):
-        e = user.etudiant_profile
-        ctx += f"Étudiant N°: {e.numero_etudiant}, Filière: {e.filiere}\n"
-        notes = Note.objects.filter(etudiant=e).select_related('matiere')
-        if notes.exists():
-            ctx += "Notes: " + ", ".join(
-                [f"{n.matiere.nom}:{n.note}/20" for n in notes[:10]]) + "\n"
-        ctx += f"Absences: {Absence.objects.filter(etudiant=e).count()}\n"
-    if hasattr(user, 'enseignant_profile'):
-        ens = user.enseignant_profile
-        ctx += (f"Enseignant: {ens.get_grade_display()}, "
-                f"Dept: {ens.departement}, Spécialité: {ens.specialite}\n")
-    return ctx
+    """
+    Contexte pour l'agent IA.
+    user = agent admin connecté (pas un étudiant).
+    """
+    from administration.models import Etudiant, Enseignant, Departement
 
+    ctx  = "Tu es un assistant IA de la Faculté des Sciences de Bizerte (FSB), "
+    ctx += "Université de Carthage, Tunisie.\n"
+    ctx += "Tu parles UNIQUEMENT avec des agents administratifs de la FSB. "
+    ctx += "Ces agents gèrent les étudiants, enseignants, notes, stages et diplômes.\n"
+    ctx += f"Agent connecté : {user.get_full_name()} — Rôle : {user.get_role_display()}\n"
+    ctx += f"Département géré : {user.departement or 'Tous les départements'}\n\n"
+
+    # Statistiques globales pour contexte
+    ctx += f"Statistiques FSB actuelles :\n"
+    ctx += f"- Étudiants inscrits : {Etudiant.objects.filter(statut='inscrit').count()}\n"
+    ctx += f"- Enseignants actifs : {Enseignant.objects.filter(actif=True).count()}\n"
+    ctx += f"- Départements : Mathématiques, Informatique, Physique, Chimie, Sciences de la Vie, Sciences de la Terre\n"
+
+    return ctx
 
 def call_anthropic_agent(messages_history, user_context, agent_type):
     """Agent 1 — Claude Haiku via Anthropic API"""

@@ -3,28 +3,31 @@ from django.db import models
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
-        ('admin', 'Administrateur'),
-        ('doyen', 'Doyen'),
-        ('chef_dept', 'Chef de Département'),
-        ('enseignant', 'Enseignant'),
-        ('etudiant', 'Étudiant'),
-        ('scolarite', 'Service Scolarité'),
+        ('super_admin',  'Super Administrateur'),
+        ('admin',        'Administrateur'),
+        ('scolarite',    'Agent Scolarité'),
+        ('chef_dept',    'Chef de Département'),
+        ('doyen',        'Doyen / Vice-Doyen'),
     ]
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='etudiant')
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='scolarite'
+    )
     telephone = models.CharField(max_length=20, blank=True)
-    photo = models.ImageField(upload_to='photos/', blank=True, null=True)
+    departement = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_role_display()})"
 
     @property
-    def is_etudiant(self):
-        return self.role == 'etudiant'
+    def is_super_admin(self):
+        return self.role == 'super_admin'
 
     @property
-    def is_enseignant(self):
-        return self.role == 'enseignant'
+    def can_edit(self):
+        return self.role in ['super_admin', 'admin', 'scolarite']
 
     @property
-    def is_admin_staff(self):
-        return self.role in ['admin', 'doyen', 'scolarite', 'chef_dept']
+    def can_validate(self):
+        return self.role in ['super_admin', 'admin', 'chef_dept', 'doyen']

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Saisie Notes — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-clipboard-list"></i>{% endblock %}
+{% block page_title %}Saisie des Notes{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div><h1>Saisie des Notes</h1><p class="sub">Enregistrement des évaluations</p></div>
+  <a href="{% url 'pedagogie:liste_notes' %}" class="btn-ghost-fsb btn-sm">
+    <i class="fas fa-list"></i> Voir toutes les notes
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card-fsb fu">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-pen"></i> Nouvelle Note</div></div>
+      <div class="card-fsb-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
+              <label class="form-label">Étudiant <span style="color:#e11d48">*</span></label>
+              <select name="etudiant" class="form-select" required>
+                <option value="">-- Choisir --</option>
+                {% for et in etudiants %}
+                <option value="{{ et.pk }}">{{ et.user.get_full_name }} ({{ et.numero_etudiant }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Matière <span style="color:#e11d48">*</span></label>
+              <select name="matiere" class="form-select" required>
+                <option value="">-- Choisir --</option>
+                {% for m in matieres %}
+                <option value="{{ m.pk }}">{{ m.nom }} ({{ m.code }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4 form-group">
+              <label class="form-label">Type d'évaluation <span style="color:#e11d48">*</span></label>
+              <select name="type_note" class="form-select" required>
+                <option value="ds">DS</option>
+                <option value="exam">Examen</option>
+                <option value="tp">TP</option>
+                <option value="expose">Exposé</option>
+                <option value="rattrapage">Rattrapage</option>
+              </select>
+            </div>
+            <div class="col-md-4 form-group">
+              <label class="form-label">Note (/20) <span style="color:#e11d48">*</span></label>
+              <input type="number" name="note" class="form-control" min="0" max="20" step="0.25" placeholder="Ex: 14.5" required>
+            </div>
+            <div class="col-md-4 form-group">
+              <label class="form-label">Semestre <span style="color:#e11d48">*</span></label>
+              <select name="semestre" class="form-select" required>
+                <option value="1">Semestre 1</option>
+                <option value="2">Semestre 2</option>
+              </select>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Année Universitaire</label>
+              <input type="text" name="annee_univ" class="form-control" value="2024-2025" placeholder="2024-2025">
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Enseignant</label>
+              <select name="enseignant" class="form-select">
+                <option value="">-- Optionnel --</option>
+                {% for ens in enseignants %}
+                <option value="{{ ens.pk }}">{{ ens.user.get_full_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12" style="margin-top:6px">
+              <button type="submit" class="btn-primary-fsb">
+                <i class="fas fa-save"></i> Enregistrer la Note
+              </button>
+              <a href="{% url 'pedagogie:liste_notes' %}" class="btn-ghost-fsb" style="margin-left:10px">
+                Voir la liste
+              </a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card-fsb fu fu2">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-info-circle"></i> Guide de saisie</div></div>
+      <div class="card-fsb-body">
+        <div style="font-size:0.83rem;color:#64748b;line-height:1.9">
+          <div style="margin-bottom:8px"><span class="badge-pill b-blue">DS</span> Devoir Surveillé — coefficient 0.4</div>
+          <div style="margin-bottom:8px"><span class="badge-pill b-purple">Examen</span> Session principale — coefficient 0.6</div>
+          <div style="margin-bottom:8px"><span class="badge-pill b-cyan">TP</span> Travaux Pratiques</div>
+          <div style="margin-bottom:8px"><span class="badge-pill b-orange">Exposé</span> Travail oral ou écrit</div>
+          <div><span class="badge-pill b-yellow">Rattrapage</span> Session de rattrapage</div>
+        </div>
+        <div style="margin-top:16px;background:#f0f5ff;border-radius:10px;padding:12px;font-size:0.8rem;color:#1d4ed8">
+          <i class="fas fa-lightbulb me-2"></i>
+          Une note déjà existante sera automatiquement <strong>mise à jour</strong> si les mêmes paramètres sont saisis.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

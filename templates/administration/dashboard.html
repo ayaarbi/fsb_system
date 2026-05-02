@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Tableau de Bord — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-home"></i>{% endblock %}
+{% block page_title %}Tableau de Bord{% endblock %}
+
+{% block content %}
+
+<!-- ---- Stat Cards ---- -->
+<div class="row g-3 mb-4">
+  <div class="col-xl-3 col-md-6 fu fu1">
+    <div class="stat-card sc-blue">
+      <div class="stat-num">{{ stats.nb_etudiants }}</div>
+      <div class="stat-label">Étudiants Inscrits</div>
+      <i class="fas fa-user-graduate stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fu fu2">
+    <div class="stat-card sc-cyan">
+      <div class="stat-num">{{ stats.nb_enseignants }}</div>
+      <div class="stat-label">Enseignants</div>
+      <i class="fas fa-chalkboard-teacher stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fu fu3">
+    <div class="stat-card sc-violet">
+      <div class="stat-num">{{ stats.nb_filieres }}</div>
+      <div class="stat-label">Filières</div>
+      <i class="fas fa-graduation-cap stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fu fu4">
+    <div class="stat-card sc-amber">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Départements</div>
+      <i class="fas fa-university stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<!-- ---- Main Grid ---- -->
+<div class="row g-3">
+
+  <!-- Départements -->
+  <div class="col-lg-7 fu fu1">
+    <div class="card-fsb">
+      <div class="card-fsb-header">
+        <div class="header-left">
+          <i class="fas fa-sitemap"></i>
+          Départements de la FSB
+        </div>
+        <span class="badge-pill b-blue">6 départements</span>
+      </div>
+      <div class="card-fsb-body">
+        <div class="row g-2">
+          {% for dept in dept_stats %}
+          <div class="col-md-6">
+            <div style="background:#f8faff;border:1px solid #e2eaf6;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;transition:all 0.2s" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2eaf6'">
+              <div style="font-size:1.7rem">
+                {% if dept.nom == 'informatique' %}💻
+                {% elif dept.nom == 'mathematiques' %}📐
+                {% elif dept.nom == 'physique' %}🔭
+                {% elif dept.nom == 'chimie' %}⚗️
+                {% elif dept.nom == 'sciences_vie' %}🔬
+                {% else %}🌍{% endif %}
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:0.87rem;color:#0b1e3d">{{ dept.get_nom_display }}</div>
+                <div style="font-size:0.73rem;color:#94a3b8;margin-top:2px">{{ dept.nb_filieres }} filière(s)</div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="empty-state" style="padding:24px">
+              <div class="empty-icon">🏛️</div>
+              <p>Aucun département. <a href="/admin/" style="color:#2563eb">Configurer via l'admin.</a></p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="col-lg-5">
+
+    <!-- Sessions d'examens -->
+    <div class="card-fsb mb-3 fu fu2">
+      <div class="card-fsb-header">
+        <div class="header-left"><i class="fas fa-graduation-cap"></i> Sessions d'Examens</div>
+        <a href="{% url 'examens:ajouter_session' %}" class="btn-primary-fsb btn-xs" style="color:white;text-decoration:none">
+          <i class="fas fa-plus"></i> Nouvelle
+        </a>
+      </div>
+      <div class="card-fsb-body" style="padding:14px">
+        {% for session in sessions %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f8faff;border-radius:10px;margin-bottom:8px;border:1px solid #e2eaf6">
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;color:#0b1e3d">{{ session.nom }}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px">
+              <i class="fas fa-calendar me-1"></i>{{ session.date_debut }} → {{ session.date_fin }}
+            </div>
+          </div>
+          <span class="badge-pill {% if session.type_session == 'principale' %}b-blue{% else %}b-yellow{% endif %}">
+            {{ session.get_type_session_display }}
+          </span>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding:20px">
+          <div class="empty-icon">📅</div>
+          <p style="font-size:0.8rem">Aucune session planifiée.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Agents IA -->
+    <div class="card-fsb fu fu3">
+      <div class="card-fsb-header">
+        <div class="header-left"><i class="fas fa-robot"></i> Assistants IA</div>
+        <span class="badge-pill b-green">2 actifs</span>
+      </div>
+      <div class="card-fsb-body" style="padding:14px">
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin"
+           style="display:flex;align-items:center;gap:12px;padding:12px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;margin-bottom:10px;text-decoration:none;transition:all 0.2s"
+           onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;font-size:1.1rem">🏛️</div>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;color:#1d4ed8">Assistant Administratif</div>
+            <div style="font-size:0.72rem;color:#3b82f6">Inscriptions · Stages · Documents</div>
+          </div>
+          <i class="fas fa-chevron-right ms-auto" style="color:#93c5fd;font-size:0.8rem"></i>
+        </a>
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_pedagogique"
+           style="display:flex;align-items:center;gap:12px;padding:12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;text-decoration:none;transition:all 0.2s"
+           onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#065f46,#059669);display:flex;align-items:center;justify-content:center;font-size:1.1rem">📚</div>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;color:#166534">Assistant Pédagogique</div>
+            <div style="font-size:0.72rem;color:#16a34a">Notes · Absences · Emploi du temps</div>
+          </div>
+          <i class="fas fa-chevron-right ms-auto" style="color:#86efac;font-size:0.8rem"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /row -->
+
+<!-- Quick Actions -->
+<div class="row g-3 mt-1">
+  <div class="col-12 fu fu4">
+    <div class="card-fsb">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-bolt"></i> Accès Rapide</div></div>
+      <div class="card-fsb-body">
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'administration:ajouter_etudiant' %}" class="btn-primary-fsb btn-sm"><i class="fas fa-user-plus"></i> Ajouter Étudiant</a>
+          <a href="{% url 'administration:ajouter_enseignant' %}" class="btn-outline-fsb btn-sm"><i class="fas fa-user-tie"></i> Ajouter Enseignant</a>
+          <a href="{% url 'pedagogie:notes' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-clipboard-list"></i> Saisir Notes</a>
+          <a href="{% url 'examens:ajouter_session' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-calendar-plus"></i> Nouvelle Session</a>
+          <a href="{% url 'stages:nouvelle_demande' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-briefcase"></i> Demande Stage</a>
+          <a href="{% url 'pedagogie:absences' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-user-times"></i> Absences</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

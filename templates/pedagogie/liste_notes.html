@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Notes — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-chart-bar"></i>{% endblock %}
+{% block page_title %}Liste des Notes{% endblock %}
+{% block content %}
+
+<style>
+    .note-text {
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .note-success {
+        color: #166534;
+        /* vert */
+    }
+
+    .note-fail {
+        color: #991b1b;
+        /* rouge */
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>Notes</h1>
+        <p class="sub">Toutes les évaluations enregistrées</p>
+    </div>
+    <a href="{% url 'pedagogie:notes' %}" class="btn-primary-fsb btn-sm">
+        <i class="fas fa-plus"></i> Saisir une Note
+    </a>
+</div>
+
+<form method="get">
+    <div class="filter-bar">
+        <select name="matiere" class="form-select" style="max-width:280px">
+            <option value="">Toutes les matières</option>
+            {% for m in matieres %}
+            <option value="{{ m.pk }}" {% if m.pk|stringformat:'s'==request.GET.matiere %}selected{% endif %}>{{ m.nom
+                }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-primary-fsb btn-sm"><i class="fas fa-filter"></i> Filtrer</button>
+        {% if request.GET.matiere %}
+        <a href="{% url 'pedagogie:liste_notes' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-times"></i>
+            Réinitialiser</a>
+        {% endif %}
+    </div>
+</form>
+
+<div class="card-fsb fu">
+    <div class="card-fsb-header">
+        <div class="header-left"><i class="fas fa-list"></i> Notes Enregistrées</div>
+        <span class="badge-pill b-blue">{{ notes.count }}</span>
+    </div>
+    <div class="card-fsb-body" style="padding:0">
+        <div class="table-responsive">
+            <table class="table-fsb">
+                <thead>
+                    <tr>
+                        <th>Étudiant</th>
+                        <th>Matière</th>
+                        <th>Type</th>
+                        <th>Note</th>
+                        <th>Semestre</th>
+                        <th>Année</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in notes %}
+                    <tr>
+                        <td>
+                            <div style="font-weight:700;color:#0b1e3d">{{ n.etudiant.user.get_full_name }}</div>
+                            <div style="font-size:0.71rem;color:#94a3b8">{{ n.etudiant.numero_etudiant }}</div>
+                        </td>
+                        <td style="font-weight:600;color:#334155">{{ n.matiere.nom }}</td>
+                        <td><span class="badge-pill b-gray">{{ n.get_type_note_display }}</span></td>
+                        <td>
+                            <span class="note-text {% if n.note >= 10 %}note-success{% else %}note-fail{% endif %}">
+                                {{ n.note }}
+                            </span>
+                        </td>
+                        <td><span class="badge-pill b-blue">S{{ n.semestre }}</span></td>
+                        <td style="color:#94a3b8;font-size:0.82rem">{{ n.annee_universitaire }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="fas fa-clipboard"></i></div>
+                                <h5>Aucune note enregistrée</h5>
+                                <p><a href="{% url 'pedagogie:notes' %}" style="color:#2563eb">Saisir la première
+                                        note</a></p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

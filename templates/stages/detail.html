@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Détail Stage — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-briefcase"></i>{% endblock %}
+{% block page_title %}Détail de la Demande{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div><h1>Demande de Stage</h1><p class="sub">{{ demande.etudiant.user.get_full_name }}</p></div>
+  <a href="{% url 'stages:demandes' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-arrow-left"></i> Retour</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card-fsb fu">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-info-circle"></i> Informations</div></div>
+      <div class="card-fsb-body">
+        <table style="width:100%;font-size:0.88rem;border-collapse:separate;border-spacing:0 6px">
+          <tr>
+            <td style="color:#94a3b8;width:150px;padding:6px 0">Étudiant</td>
+            <td style="font-weight:700;color:#0b1e3d">{{ demande.etudiant.user.get_full_name }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Sujet</td>
+            <td style="font-weight:600;color:#334155">{{ demande.sujet }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Entreprise</td>
+            <td style="font-weight:600;color:#334155">{{ demande.entreprise }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Type</td>
+            <td><span class="badge-pill b-purple">{{ demande.get_type_stage_display }}</span></td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Période</td>
+            <td style="color:#334155">{{ demande.date_debut }} → {{ demande.date_fin }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Encadrant FSB</td>
+            <td style="color:#334155">{{ demande.encadrant_fsb.user.get_full_name|default:"Non assigné" }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Statut</td>
+            <td>
+              <span class="badge-pill
+                {% if demande.statut == 'valide' %}b-green
+                {% elif demande.statut == 'refuse' %}b-red
+                {% elif demande.statut == 'en_cours' %}b-blue
+                {% elif demande.statut == 'termine' %}b-purple
+                {% else %}b-yellow{% endif %}">
+                {{ demande.get_statut_display }}
+              </span>
+            </td>
+          </tr>
+          {% if demande.note_stage %}
+          <tr>
+            <td style="color:#94a3b8;padding:6px 0">Note</td>
+            <td style="font-size:1.1rem;font-weight:800;color:#166534">{{ demande.note_stage }}/20</td>
+          </tr>
+          {% endif %}
+        </table>
+        {% if demande.description %}
+        <div style="margin-top:16px;background:#f8faff;border-radius:10px;padding:14px">
+          <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Description</div>
+          <div style="font-size:0.86rem;color:#334155;line-height:1.7">{{ demande.description }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_admin_staff %}
+  <div class="col-lg-5">
+    <div class="card-fsb fu fu2">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-edit"></i> Traiter la Demande</div></div>
+      <div class="card-fsb-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Nouveau Statut</label>
+            <select name="statut" class="form-select">
+              <option value="en_attente" {% if demande.statut == 'en_attente' %}selected{% endif %}>En Attente</option>
+              <option value="valide" {% if demande.statut == 'valide' %}selected{% endif %}>Valider</option>
+              <option value="refuse" {% if demande.statut == 'refuse' %}selected{% endif %}>Refuser</option>
+              <option value="en_cours" {% if demande.statut == 'en_cours' %}selected{% endif %}>En Cours</option>
+              <option value="termine" {% if demande.statut == 'termine' %}selected{% endif %}>Terminé</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Encadrant FSB</label>
+            <select name="encadrant" class="form-select">
+              <option value="">-- Non assigné --</option>
+              {% for ens in enseignants %}
+              <option value="{{ ens.pk }}" {% if demande.encadrant_fsb and demande.encadrant_fsb.pk == ens.pk %}selected{% endif %}>{{ ens.user.get_full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn-primary-fsb w-100"><i class="fas fa-save"></i> Mettre à Jour</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

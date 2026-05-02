@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Diplômes — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-scroll"></i>{% endblock %}
+{% block page_title %}Diplômes{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div><h1>Diplômes</h1><p class="sub">{{ diplomes.count }} diplôme(s) délivré(s)</p></div>
+</div>
+
+<div class="card-fsb fu">
+  <div class="card-fsb-header">
+    <div class="header-left"><i class="fas fa-scroll"></i> Diplômes Délivrés</div>
+    <span class="badge-pill b-purple">{{ diplomes.count }}</span>
+  </div>
+  <div class="card-fsb-body" style="padding:0">
+    <div class="table-responsive">
+      <table class="table-fsb">
+        <thead>
+          <tr><th>N° Diplôme</th><th>Étudiant</th><th>Type</th><th>Spécialité</th><th>Année</th><th>Mention</th><th>Moyenne</th></tr>
+        </thead>
+        <tbody>
+          {% for d in diplomes %}
+          <tr>
+            <td><code style="background:#f3e8ff;color:#6b21a8;padding:3px 8px;border-radius:6px;font-size:0.79rem">{{ d.numero_diplome }}</code></td>
+            <td>
+              <div style="font-weight:700;color:#0b1e3d">{{ d.etudiant.user.get_full_name }}</div>
+              <div style="font-size:0.71rem;color:#94a3b8">{{ d.etudiant.numero_etudiant }}</div>
+            </td>
+            <td><span class="badge-pill b-blue">{{ d.type_diplome }}</span></td>
+            <td style="font-size:0.83rem;color:#334155">{{ d.specialite }}</td>
+            <td style="font-weight:700;color:#0b1e3d">{{ d.annee_obtention }}</td>
+            <td>
+              <span class="badge-pill
+                {% if d.mention == 'tres_bien' %}b-green
+                {% elif d.mention == 'bien' %}b-blue
+                {% elif d.mention == 'assez_bien' %}b-cyan
+                {% else %}b-gray{% endif %}">
+                {{ d.get_mention_display|default:"—" }}
+              </span>
+            </td>
+            <td>
+              {% if d.moyenne_generale %}
+              <span style="font-weight:800;font-size:1rem;color:#166534">{{ d.moyenne_generale }}/20</span>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="fas fa-scroll"></i></div>
+              <h5>Aucun diplôme enregistré</h5>
+              <p>Les diplômes délivrés apparaîtront ici.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

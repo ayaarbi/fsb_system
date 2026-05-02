@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Nouvelle Demande — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-briefcase"></i>{% endblock %}
+{% block page_title %}Nouvelle Demande de Stage{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div><h1>Demande de Stage</h1><p class="sub">Soumettre une demande de stage ou PFE</p></div>
+  <a href="{% url 'stages:demandes' %}" class="btn-ghost-fsb btn-sm"><i class="fas fa-arrow-left"></i> Retour</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card-fsb fu">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-file-alt"></i> Informations du Stage</div></div>
+      <div class="card-fsb-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
+              <label class="form-label">Type de Stage <span style="color:#e11d48">*</span></label>
+              <select name="type_stage" class="form-select" required>
+                <option value="observation">Stage Observation</option>
+                <option value="initiation">Stage Initiation</option>
+                <option value="pfe">PFE (Projet de Fin d'Études)</option>
+              </select>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Entreprise / Organisme <span style="color:#e11d48">*</span></label>
+              <input type="text" name="entreprise" class="form-control" placeholder="Ex: Tunisie Telecom, STEG..." required>
+            </div>
+            <div class="col-12 form-group">
+              <label class="form-label">Sujet du Stage <span style="color:#e11d48">*</span></label>
+              <input type="text" name="sujet" class="form-control" placeholder="Titre ou intitulé du sujet..." required>
+            </div>
+            <div class="col-12 form-group">
+              <label class="form-label">Description / Objectifs</label>
+              <textarea name="description" class="form-control" rows="4" placeholder="Décrivez les objectifs et le contenu du stage..."></textarea>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Date de Début <span style="color:#e11d48">*</span></label>
+              <input type="date" name="date_debut" class="form-control" required>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="form-label">Date de Fin <span style="color:#e11d48">*</span></label>
+              <input type="date" name="date_fin" class="form-control" required>
+            </div>
+            <div class="col-12" style="margin-top:6px">
+              <button type="submit" class="btn-primary-fsb"><i class="fas fa-paper-plane"></i> Soumettre la Demande</button>
+              <a href="{% url 'stages:demandes' %}" class="btn-ghost-fsb" style="margin-left:10px">Annuler</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-fsb fu fu2">
+      <div class="card-fsb-header"><div class="header-left"><i class="fas fa-info-circle"></i> Procédure</div></div>
+      <div class="card-fsb-body">
+        <div style="font-size:0.82rem;color:#64748b;line-height:1.9">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+            <div style="width:22px;height:22px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-top:1px">1</div>
+            <span>Remplissez ce formulaire et soumettez votre demande.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+            <div style="width:22px;height:22px;border-radius:50%;background:#fef9c3;color:#854d0e;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-top:1px">2</div>
+            <span>Votre demande est examinée par le département (5–7 jours).</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+            <div style="width:22px;height:22px;border-radius:50%;background:#dcfce7;color:#166534;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-top:1px">3</div>
+            <span>Un encadrant FSB vous est assigné après validation.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:22px;height:22px;border-radius:50%;background:#f3e8ff;color:#6b21a8;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;margin-top:1px">4</div>
+            <span>Déposez votre rapport à la fin du stage.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

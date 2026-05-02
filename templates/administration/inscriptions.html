@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Inscriptions — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-file-signature"></i>{% endblock %}
+{% block page_title %}Gestion des Inscriptions{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div><h1>Inscriptions</h1><p class="sub">Gestion des inscriptions universitaires</p></div>
+</div>
+
+<div class="card-fsb fu">
+  <div class="card-fsb-header">
+    <div class="header-left"><i class="fas fa-list"></i> Liste des Inscriptions</div>
+    <span class="badge-pill b-blue">{{ inscriptions.count }}</span>
+  </div>
+  <div class="card-fsb-body" style="padding:0">
+    <div class="table-responsive">
+      <table class="table-fsb">
+        <thead>
+          <tr>
+            <th>Étudiant</th>
+            <th>Filière</th>
+            <th>Année Universitaire</th>
+            <th>Date Inscription</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ins in inscriptions %}
+          <tr>
+            <td>
+              <div style="font-weight:700;color:#0b1e3d">{{ ins.etudiant.user.get_full_name }}</div>
+              <div style="font-size:0.72rem;color:#94a3b8">{{ ins.etudiant.numero_etudiant }}</div>
+            </td>
+            <td style="font-size:0.85rem;color:#334155">{{ ins.filiere }}</td>
+            <td>
+              <span class="badge-pill b-blue">{{ ins.annee_universitaire }}</span>
+            </td>
+            <td style="color:#94a3b8;font-size:0.82rem">{{ ins.date_inscription }}</td>
+            <td>
+              <span class="badge-pill {% if ins.valide %}b-green{% else %}b-yellow{% endif %}">
+                {% if ins.valide %}Validée{% else %}En attente{% endif %}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="fas fa-file-signature"></i></div>
+              <h5>Aucune inscription</h5>
+              <p>Les inscriptions apparaîtront ici.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

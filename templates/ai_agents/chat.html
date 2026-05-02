@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Assistant IA — FSB{% endblock %}
+{% block page_icon %}<i class="fas fa-robot"></i>{% endblock %}
+{% block page_title %}
+  {% if agent_type == 'assistant_admin' %}Assistant Administratif{% else %}Assistant Pédagogique{% endif %}
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout" id="chatApp"
+     data-conv-id="{{ current_conv.pk|default:'' }}"
+     data-agent-type="{{ agent_type }}">
+
+  <!-- ======== SIDEBAR ======== -->
+  <div class="chat-sidebar">
+    <!-- Agent card -->
+    <div class="agent-card">
+      <div class="agent-avatar {% if agent_type == 'assistant_admin' %}admin-av{% else %}peda-av{% endif %}">
+        {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
+        <div class="agent-status"></div>
+      </div>
+      <div class="agent-name">
+        {% if agent_type == 'assistant_admin' %}Assistant Administratif{% else %}Assistant Pédagogique{% endif %}
+      </div>
+      <div class="agent-desc">
+        {% if agent_type == 'assistant_admin' %}Inscriptions · Stages · Documents · Procédures{% else %}Notes · Absences · Emploi du temps · Orientation{% endif %}
+      </div>
+      <span class="agent-type-badge {% if agent_type == 'assistant_admin' %}admin-badge{% else %}peda-badge{% endif %}">
+        {% if agent_type == 'assistant_admin' %}Administration{% else %}Pédagogie{% endif %}
+      </span>
+
+      <div class="api-status {% if has_api_key %}online{% else %}offline{% endif %}">
+        <i class="fas fa-circle" style="font-size:0.5rem"></i>
+        {% if has_api_key %}Claude IA Actif{% else %}Mode Hors-ligne{% endif %}
+      </div>
+
+      <div class="switch-agents">
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin"
+           class="switch-btn {% if agent_type == 'assistant_admin' %}active{% endif %}">
+          <span class="sw-icon">🏛️</span> Admin
+        </a>
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_pedagogique"
+           class="switch-btn {% if agent_type == 'assistant_pedagogique' %}active{% endif %}">
+          <span class="sw-icon">📚</span> Pédagogique
+        </a>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-panel">
+      <div class="history-header">
+        <i class="fas fa-history"></i> Conversations récentes
+      </div>
+      <div class="history-list">
+        {% for conv in conversations %}
+        <a href="{% url 'ai_agents:chat' %}?agent={{ conv.agent_type }}&conv={{ conv.pk }}"
+           class="history-item">
+          <div class="hi-title">{{ conv.titre|truncatechars:32 }}</div>
+          <div class="hi-time">{{ conv.created_at|date:"d/m H:i" }}</div>
+        </a>
+        {% empty %}
+        <div style="padding:16px;text-align:center;font-size:0.79rem;color:#94a3b8">
+          Aucune conversation
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== CHAT MAIN ======== -->
+  <div class="chat-main">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="ch-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
+        {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
+      </div>
+      <div>
+        <div class="ch-name">
+          {% if agent_type == 'assistant_admin' %}Assistant Administratif FSB{% else %}Assistant Pédagogique FSB{% endif %}
+        </div>
+        <div class="ch-sub">
+          {% if has_api_key %}Alimenté par Claude IA · Faculté des Sciences de Bizerte{% else %}Mode hors-ligne · Réponses automatiques FSB{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+      {% csrf_token %}
+
+      {% if not conv_messages %}
+      <div class="chat-welcome" id="chatWelcome">
+        <div class="welcome-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
+          {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
+        </div>
+        <h4>Bonjour, {{ user.first_name }} !</h4>
+        <p>Je suis votre assistant {% if agent_type == 'assistant_admin' %}administratif{% else %}pédagogique{% endif %} de la FSB.<br>Comment puis-je vous aider aujourd'hui ?</p>
+        <div class="quick-btns">
+          {% if agent_type == 'assistant_admin' %}
+          <button class="quick-btn" data-msg="Comment faire une demande de stage ?">📋 Demande de stage</button>
+          <button class="quick-btn" data-msg="Quels documents pour l'inscription ?">📄 Inscription</button>
+          <button class="quick-btn" data-msg="Comment obtenir mon diplôme ?">🎓 Diplôme</button>
+          <button class="quick-btn" data-msg="Comment contacter l'administration ?">📞 Contact</button>
+          <button class="quick-btn" data-msg="Quels sont les frais universitaires ?">💰 Frais</button>
+          {% else %}
+          <button class="quick-btn" data-msg="Comment consulter mes notes ?">📊 Mes notes</button>
+          <button class="quick-btn" data-msg="Quand sont les examens ?">📅 Examens</button>
+          <button class="quick-btn" data-msg="Combien d'absences sont autorisées ?">❌ Absences</button>
+          <button class="quick-btn" data-msg="Quels sont les départements de la FSB ?">🏛️ Départements</button>
+          <button class="quick-btn" data-msg="Comment calculer ma moyenne générale ?">🧮 Moyenne</button>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Previous messages -->
+      {% for msg in conv_messages %}
+      <div class="msg-row {{ msg.role }}">
+        <div class="msg-av {% if msg.role == 'user' %}user-av{% else %}bot-av{% endif %}">
+          {% if msg.role == 'user' %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}🤖{% endif %}
+        </div>
+        <div>
+          <div class="msg-bubble">{{ msg.contenu|linebreaksbr }}</div>
+          <div class="msg-time">{{ msg.timestamp|date:"H:i" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Typing indicator -->
+      <div class="typing-row" id="typingIndicator" style="display:none">
+        <div class="msg-av bot-av">🤖</div>
+        <div class="typing-bubble">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <textarea
+        id="chatInput"
+        class="chat-textarea"
+        placeholder="Posez votre question... (Entrée pour envoyer, Maj+Entrée pour saut de ligne)"
+        rows="1"
+      ></textarea>
+      <button class="send-btn" onclick="sendMessage()" title="Envoyer">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}

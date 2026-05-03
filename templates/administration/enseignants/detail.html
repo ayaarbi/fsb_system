@@ -1,8 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}Fiche Enseignant — FSB{% endblock %}
+{% block title %}{{ enseignant.prenom }} {{ enseignant.nom }} — FSB{% endblock %}
 {% block page_icon %}<i class="fas fa-id-badge"></i>{% endblock %}
 {% block page_title %}Fiche Enseignant{% endblock %}
+
 {% block content %}
+<style>
+  .seance-card {
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 180px;
+  }
+
+  /* Dégradés par type */
+  .seance-cours {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  }
+
+  .seance-td {
+    background: linear-gradient(135deg, #0c4a6e, #0284c7);
+  }
+
+  .seance-autre {
+    background: linear-gradient(135deg, #78350f, #d97706);
+  }
+</style>
+<!-- Breadcrumb -->
+<nav style="margin-bottom:18px;font-size:0.83rem;color:#94a3b8">
+  <a href="{% url 'administration:liste_enseignants' %}" style="color:#2563eb;text-decoration:none;font-weight:600">
+    <i class="fas fa-chalkboard-teacher me-1"></i>Enseignants
+  </a>
+  <span style="margin:0 8px">›</span>
+  <a href="{% url 'administration:enseignants_liste' enseignant.departement.pk %}"
+    style="color:#2563eb;text-decoration:none;font-weight:600">
+    {{ enseignant.departement.get_nom_display }}
+  </a>
+  <span style="margin:0 8px">›</span>
+  <span style="color:#0b1e3d;font-weight:700">{{ enseignant.prenom }} {{ enseignant.nom }}</span>
+</nav>
 
 <div class="page-header">
   <div>
@@ -10,28 +45,29 @@
     <p class="sub">{{ enseignant.get_grade_display }} — {{ enseignant.departement }}</p>
   </div>
   <div style="display:flex;gap:8px">
-    <a href="{% url 'administration:modifier_enseignant' enseignant.pk %}"
-       class="btn-outline-fsb btn-sm">
+    <a href="{% url 'administration:modifier_enseignant' enseignant.pk %}" class="btn-outline-fsb btn-sm">
       <i class="fas fa-edit"></i> Modifier
     </a>
-    <a href="{% url 'administration:liste_enseignants' %}"
-       class="btn-ghost-fsb btn-sm">
+    <a href="{% url 'administration:enseignants_liste' enseignant.departement.pk %}" class="btn-ghost-fsb btn-sm">
       <i class="fas fa-arrow-left"></i> Retour
     </a>
   </div>
 </div>
 
 <div class="row g-3">
-  <div class="col-lg-4">
+
+  <!-- ── COLONNE GAUCHE : Infos ── -->
+  <div class="col-lg-3">
     <div class="card-fsb fu">
-      <div class="card-fsb-body" style="text-align:center;padding:30px">
+      <div class="card-fsb-body" style="text-align:center;padding:28px">
         <div style="width:80px;height:80px;border-radius:20px;
                     background:linear-gradient(135deg,#0c4a6e,#0284c7);
                     display:flex;align-items:center;justify-content:center;
-                    color:white;font-size:2rem;font-weight:800;margin:0 auto 16px">
+                    color:white;font-size:2rem;font-weight:800;margin:0 auto 16px;
+                    box-shadow:0 6px 20px rgba(2,132,199,0.25)">
           {{ enseignant.prenom|first|upper }}{{ enseignant.nom|first|upper }}
         </div>
-        <div style="font-size:1.1rem;font-weight:800;color:#0b1e3d">
+        <div style="font-size:1.05rem;font-weight:800;color:#0b1e3d">
           {{ enseignant.prenom }} {{ enseignant.nom }}
         </div>
         <div style="margin-top:8px">
@@ -44,39 +80,31 @@
           </span>
         </div>
         {% if not enseignant.actif %}
-        <div style="margin-top:6px">
-          <span class="badge-pill b-red">Inactif</span>
-        </div>
+        <div style="margin-top:6px"><span class="badge-pill b-red">Inactif</span></div>
         {% endif %}
-
-        <hr style="margin:18px 0;border-color:#e2eaf6">
-
-        <div style="text-align:left;font-size:0.84rem">
-          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+        <hr style="margin:16px 0;border-color:#e2eaf6">
+        <div style="text-align:left;font-size:0.82rem">
+          {% for label, val in info_list %}{% endfor %}
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
             <span style="color:#94a3b8">Matricule</span>
-            <code style="background:#f0f5ff;color:#1d4ed8;
-                         padding:2px 7px;border-radius:5px;font-size:0.79rem">
-              {{ enseignant.matricule }}
-            </code>
+            <code
+              style="background:#f0f5ff;color:#1d4ed8;padding:2px 7px;border-radius:5px;font-size:0.77rem">{{ enseignant.matricule }}</code>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
             <span style="color:#94a3b8">Département</span>
             <span style="font-weight:600;color:#334155">{{ enseignant.departement|default:"—" }}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
             <span style="color:#94a3b8">Spécialité</span>
-            <span style="font-weight:600;color:#334155;font-size:0.8rem">
-              {{ enseignant.specialite|default:"—" }}
-            </span>
+            <span style="font-weight:600;color:#334155;font-size:0.78rem;text-align:right;max-width:120px">{{
+              enseignant.specialite|default:"—" }}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
             <span style="color:#94a3b8">Email</span>
-            <span style="font-weight:600;color:#334155;font-size:0.78rem">
-              {{ enseignant.email|default:"—" }}
-            </span>
+            <span style="font-weight:600;color:#334155;font-size:0.75rem">{{ enseignant.email|default:"—" }}</span>
           </div>
           <div style="display:flex;justify-content:space-between">
-            <span style="color:#94a3b8">Téléphone</span>
+            <span style="color:#94a3b8">Tél.</span>
             <span style="font-weight:600;color:#334155">{{ enseignant.telephone|default:"—" }}</span>
           </div>
         </div>
@@ -84,23 +112,142 @@
     </div>
   </div>
 
-  <div class="col-lg-8">
-    <div class="card-fsb fu fu2">
+  <!-- ── COLONNE DROITE : Emploi du temps + Matières ── -->
+  <div class="col-lg-9">
+
+    <!-- Emploi du temps hebdomadaire -->
+    <div class="card-fsb fu fu2 mb-3">
       <div class="card-fsb-header">
-        <div class="header-left"><i class="fas fa-calendar-week"></i> Séances Assignées</div>
+        <div class="header-left"><i class="fas fa-calendar-week"></i> Emploi du Temps</div>
+        <span class="badge-pill b-blue">{{ seances.count }} séance(s)</span>
       </div>
-      <div class="card-fsb-body">
-        <div class="empty-state" style="padding:32px">
-          <div class="empty-icon"><i class="fas fa-calendar-alt"></i></div>
-          <h5>Emploi du temps</h5>
-          <p>Consultez l'emploi du temps pour voir les séances de cet enseignant.</p>
-          <a href="{% url 'pedagogie:emploi_du_temps' %}"
-             class="btn-primary-fsb btn-sm" style="margin-top:10px">
-            <i class="fas fa-calendar-week"></i> Voir l'Emploi du Temps
-          </a>
+      <div class="card-fsb-body" style="padding:14px">
+
+        {% if emploi_par_jour %}
+
+        <!-- Grille par jour -->
+        {% for jour, seances_jour in emploi_par_jour.items %}
+        <div style="margin-bottom:14px">
+          <div style="font-size:0.75rem;font-weight:800;color:#94a3b8;text-transform:uppercase;
+                      letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+            <div style="height:1px;width:20px;background:#e2eaf6"></div>
+            {{ jour }}
+            <div style="height:1px;flex:1;background:#e2eaf6"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            {% for s in seances_jour %}
+            <div class="seance-card 
+            {% if s.type_seance == 'cours' %}seance-cours
+            {% elif s.type_seance == 'td' %}seance-td
+            {% else %}seance-autre{% endif %}">
+              {{ s.label }}
+            </div>
+
+            <div style="font-size:0.8rem;font-weight:700">{{ s.matiere.nom }}</div>
+            <div style="font-size:0.7rem;opacity:0.8;margin-top:3px">
+              <i class="fas fa-clock me-1"></i>
+              {{ s.heure_debut|time:"H:i" }} – {{ s.heure_fin|time:"H:i" }}
+            </div>
+            <div style="font-size:0.68rem;opacity:0.75;margin-top:2px;display:flex;justify-content:space-between">
+              <span>
+                {% if s.type_seance == 'cours' %}📚 Cours
+                {% elif s.type_seance == 'td' %}📝 TD
+                {% else %}🔬 TP{% endif %}
+              </span>
+              {% if s.salle %}
+              <span><i class="fas fa-map-marker-alt me-1"></i>{{ s.salle.nom }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
+      {% endfor %}
+
+      {% else %}
+      <div class="empty-state" style="padding:28px">
+        <div class="empty-icon"><i class="fas fa-calendar"></i></div>
+        <h5>Aucune séance assignée</h5>
+        <p style="font-size:0.82rem">Ajoutez des séances via
+          <a href="{% url 'pedagogie:emploi_du_temps' %}" style="color:#2563eb">l'emploi du temps</a>.
+        </p>
+      </div>
+      {% endif %}
+
     </div>
   </div>
+
+  <!-- Matières par classe -->
+  {% if seances_par_classe %}
+  <div class="card-fsb fu fu3">
+    <div class="card-fsb-header">
+      <div class="header-left">
+        <i class="fas fa-chalkboard"></i> Matières Enseignées par Classe
+      </div>
+    </div>
+    <div class="card-fsb-body" style="padding:14px">
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+        {% for item in seances_par_classe %}
+        <div style="background:#f8faff;border:1.5px solid #e2eaf6;border-radius:12px;
+                      overflow:hidden">
+
+          <!-- Header classe -->
+          <div style="background:linear-gradient(135deg,#0b1e3d,#1a3f7a);
+                        padding:10px 14px;display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:7px;
+                          background:rgba(255,255,255,0.15);
+                          display:flex;align-items:center;justify-content:center;font-size:0.85rem">
+              🏫
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:0.85rem;color:white">
+                {{ item.classe.nom }}
+              </div>
+              <div style="font-size:0.67rem;color:rgba(255,255,255,0.5)">
+                {{ item.classe.get_niveau_display }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Liste matières -->
+          <div style="padding:10px 14px">
+            {% for mat in item.matieres %}
+            <div style="display:flex;align-items:center;gap:8px;
+                          padding:6px 0;border-bottom:1px solid #f0f5f9">
+              <div style="width:6px;height:6px;border-radius:50%;
+                            background:#2563eb;flex-shrink:0"></div>
+              <div style="flex:1">
+                <div style="font-size:0.82rem;font-weight:600;color:#0b1e3d">
+                  {{ mat.matiere }}
+                </div>
+                <div style="font-size:0.69rem;color:#94a3b8">
+                  {{ mat.type }}
+                  {% if mat.jour %}
+                  &nbsp;·&nbsp; {{ mat.jour }} {{ mat.heure }}
+                  {% endif %}
+                </div>
+              </div>
+              <span class="badge-pill
+                  {% if mat.type == 'Cours' %}b-blue
+                  {% elif mat.type == 'TD' %}b-cyan
+                  {% else %}b-orange{% endif %}" style="font-size:0.63rem">
+                {{ mat.type }}
+              </span>
+            </div>
+            {% empty %}
+            <div style="font-size:0.8rem;color:#94a3b8;padding:8px 0">Aucune matière</div>
+            {% endfor %}
+          </div>
+
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+  {% endif %}
+
+</div>
 </div>
 {% endblock %}

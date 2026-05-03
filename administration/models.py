@@ -27,25 +27,62 @@ class Filiere(models.Model):
     NIVEAU_CHOICES = [
         ('L1','Licence 1'), ('L2','Licence 2'), ('L3','Licence 3'),
         ('M1','Master 1'),  ('M2','Master 2'),  ('Doc','Doctorat'),
-        ('CPI1','Cycle Préparatoire Intégré 1'), ('CPI2','Cycle Préparatoire Intégré 2'),
-        ('CI1','Cycle Ingénieur 1'), ('CI2','Cycle Ingénieur 2'), ('CI3','Cycle Ingénieur 3'),
+        ('CPI','Cycle Préparatoire Intégré'), ('CI','Cycle Ingénieur'),
     ]
     TYPE_CHOICES = [
-        ('fondamentale',    'Fondamentale'),
-        ('appliquee',       'Appliquée'),
-        ('professionnelle', 'Professionnelle'),
+        ('licence',    'Licence'),
+        ('master',     'Master'),
+        ('doctorat',   'Doctorat'),
+        ('cpi',        'CPI'),
+        ('ci',         'CI'),
     ]
     nom            = models.CharField(max_length=100)
     code           = models.CharField(max_length=20, unique=True)
-    departement    = models.ForeignKey(Departement, on_delete=models.CASCADE,
-                                       related_name='filieres')
+    departement    = models.ForeignKey(
+        Departement, on_delete=models.CASCADE, related_name='filieres'
+    )
     niveau         = models.CharField(max_length=5, choices=NIVEAU_CHOICES)
-    type_formation = models.CharField(max_length=20, choices=TYPE_CHOICES,
-                                      default='fondamentale')
+    type_formation = models.CharField(
+        max_length=20, choices=TYPE_CHOICES, default='licence'
+    )
+    description    = models.TextField(blank=True, default='')
+
+    def nb_etudiants(self):
+        return Etudiant.objects.filter(filiere=self, statut='inscrit').count()
+
+    def nb_enseignants(self):
+        return Enseignant.objects.filter(
+            departement=self.departement, actif=True
+        ).count()
 
     def __str__(self):
         return f"{self.code} — {self.nom}"
 
+
+class Classe(models.Model):
+    NIVEAU_CHOICES = [
+        ('L1', 'Licence 1'), ('L2', 'Licence 2'), ('L3', 'Licence 3'),
+        ('M1', 'Master 1'),  ('M2', 'Master 2'),
+        ('Doc1', 'Doctorat 1'), ('Doc2', 'Doctorat 2'), ('Doc3', 'Doctorat 3'),
+        ('CPI1', 'Cycle Préparatoire Intégré 1'), ('CPI2', 'Cycle Préparatoire Intégré 2'),
+        ('CI1', 'Cycle Ingénieur 1'),   ('CI2', 'Cycle Ingénieur 2'), ('CI3', 'Cycle Ingénieur 3'),
+    ]
+    nom      = models.CharField(max_length=100)
+    code     = models.CharField(max_length=20, unique=True)
+    filiere  = models.ForeignKey(
+        Filiere, on_delete=models.CASCADE, related_name='classes'
+    )
+    niveau   = models.CharField(max_length=10, choices=NIVEAU_CHOICES)
+    annee_universitaire = models.CharField(max_length=9, default='2024-2025')
+    capacite = models.IntegerField(default=30)
+
+    def __str__(self):
+        return f"{self.code} — {self.nom}"
+
+    def nb_etudiants(self):
+        return Etudiant.objects.filter(
+            filiere=self.filiere, statut='inscrit'
+        ).count()
 
 # ──────────────────────────────────────────
 # ENSEIGNANTS  (données gérées par l'admin)

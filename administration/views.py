@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count
-from .models import Departement, Filiere, Enseignant, Etudiant, Salle, Inscription
+from django.db.models import Count, Q
+from .models import Departement, Filiere, Enseignant, Etudiant, Salle, Inscription, Classe
 from pedagogie.models import Note, Absence
 from examens.models import SessionExamen
+from django.db import models
 
 
 # ──────────────────────────────────────────
@@ -193,7 +194,375 @@ def detail_enseignant(request, pk):
         'enseignant': enseignant,
     })
 
+# ──────────────────────────────────────────
+# DASHBOARD  (remplacer l'ancienne fonction)
+# ──────────────────────────────────────────
+@login_required
+def dashboard(request):
+    from pedagogie.models import Note, Absence
+    stats = {
+        'nb_etudiants':    Etudiant.objects.filter(statut='inscrit').count(),
+        'nb_enseignants':  Enseignant.objects.filter(actif=True).count(),
+        'nb_filieres':     Filiere.objects.count(),
+        'nb_inscriptions': Inscription.objects.filter(valide=True).count(),
+    }
 
+    # Comptages par type de formation pour les boutons
+    formations = {
+        'licence':  Filiere.objects.filter(type_formation='licence').count(),
+        'master':   Filiere.objects.filter(type_formation='master').count(),
+        'doctorat': Filiere.objects.filter(type_formation='doctorat').count(),
+        'cpi':      Filiere.objects.filter(type_formation='cpi').count(),
+        'ci':       Filiere.objects.filter(type_formation='ci').count(),
+    }
+
+    sessions_recentes = SessionExamen.objects.order_by('-date_debut')[:3]
+
+    return render(request, 'administration/dashboard.html', {
+        'stats':      stats,
+        'formations': formations,
+        'sessions':   sessions_recentes,
+    })
+
+
+# ──────────────────────────────────────────
+# VUE : Liste des départements pour un type
+# ──────────────────────────────────────────
+@login_required
+def formation_detail(request, type_formation):
+    LABELS = {
+        'licence':  'Licences',
+        'master':   'Masters',
+        'doctorat': 'Doctorats',
+        'cpi':      'CPI',
+        'ci':       'CI',
+    }
+    label = LABELS.get(type_formation, type_formation.capitalize())
+
+    # Navigation entre les types
+    type_list = list(LABELS.items())   # [('licence','Licences'), ...]
+
+    departements = Departement.objects.filter(
+        filieres__type_formation=type_formation
+    ).distinct()
+
+    dept_data = []
+    for dept in departements:
+        filieres = Filiere.objects.filter(
+            departement=dept, type_formation=type_formation
+        )
+        nb_etudiants   = Etudiant.objects.filter(
+            filiere__in=filieres, statut='inscrit'
+        ).count()
+        nb_enseignants = Enseignant.objects.filter(
+            departement=dept, actif=True
+        ).count()
+        dept_data.append({
+            'dept':           dept,
+            'filieres':       filieres,
+            'nb_etudiants':   nb_etudiants,
+            'nb_enseignants': nb_enseignants,
+        })
+
+    return render(request, 'administration/formation_detail.html', {
+        'type_formation': type_formation,
+        'label':          label,
+        'dept_data':      dept_data,
+        'type_list':      type_list,
+    })
+
+# ──────────────────────────────────────────
+# VUE : Détail d'un département
+# ──────────────────────────────────────────
+@login_required
+def departement_detail(request, type_formation, dept_id):
+    from django.db import models as django_models
+    dept     = get_object_or_404(Departement, pk=dept_id)
+    filieres = Filiere.objects.filter(
+        departement=dept, type_formation=type_formation
+    )
+    nb_etudiants  = Etudiant.objects.filter(
+        filiere__in=filieres, statut='inscrit'
+    ).count()
+    nb_enseignants = Enseignant.objects.filter(
+        departement=dept, actif=True
+    ).count()
+    enseignants    = Enseignant.objects.filter(
+        departement=dept, actif=True
+    ).order_by('grade', 'nom')
+
+    return render(request, 'administration/departement_detail.html', {
+        'dept':           dept,
+        'type_formation': type_formation,
+        'filieres':       filieres,
+        'nb_etudiants':   nb_etudiants,
+        'nb_enseignants': nb_enseignants,
+        'enseignants':    enseignants,
+    })
+
+
+# ──────────────────────────────────────────
+# VUE : Détail d'une filière + classes
+# ──────────────────────────────────────────
+@login_required
+def filiere_detail(request, type_formation, dept_id, filiere_id):
+    from administration.models import Classe
+    filiere       = get_object_or_404(Filiere, pk=filiere_id)
+    dept          = get_object_or_404(Departement, pk=dept_id)
+    etudiants     = Etudiant.objects.filter(
+        filiere=filiere, statut='inscrit'
+    ).order_by('nom')
+    nb_enseignants = Enseignant.objects.filter(
+        departement=filiere.departement, actif=True
+    ).count()
+    classes       = filiere.classes.all().order_by('niveau')
+
+    return render(request, 'administration/filiere_detail.html', {
+        'filiere':        filiere,
+        'dept':           dept,
+        'type_formation': type_formation,
+        'etudiants':      etudiants,
+        'nb_enseignants': nb_enseignants,
+        'classes':        classes,
+    })
+# ══════════════════════════════════════════
+# NAVIGATION ÉTUDIANTS
+# ══════════════════════════════════════════
+
+@login_required
+def etudiants_departements(request):
+    """Étape 1 : choisir un département"""
+    departements = Departement.objects.all()
+    dept_data = []
+    for dept in departements:
+        nb = Etudiant.objects.filter(
+            filiere__departement=dept, statut='inscrit'
+        ).count()
+        dept_data.append({'dept': dept, 'nb_etudiants': nb})
+
+    return render(request, 'administration/etudiants/nav_departements.html', {
+        'dept_data': dept_data,
+    })
+
+
+@login_required
+def etudiants_filieres(request, dept_id):
+    """Étape 2 : choisir une filière (groupées par type)"""
+    dept = get_object_or_404(Departement, pk=dept_id)
+
+    TYPE_LABELS = [
+        ('licence',  'Licences'),
+        ('master',   'Masters'),
+        ('doctorat', 'Doctorat'),
+        ('cpi',      'CPI'),
+        ('ci',       'CI'),
+    ]
+
+    groupes = []
+    for tf, label in TYPE_LABELS:
+        filieres = Filiere.objects.filter(
+            departement=dept, type_formation=tf
+        )
+        if filieres.exists():
+            fil_data = []
+            for f in filieres:
+                nb = Etudiant.objects.filter(
+                    filiere=f, statut='inscrit'
+                ).count()
+                nb_classes = f.classes.count()
+                fil_data.append({
+                    'filiere':     f,
+                    'nb_etudiants': nb,
+                    'nb_classes':  nb_classes,
+                })
+            groupes.append({'label': label, 'type': tf, 'filieres': fil_data})
+
+    return render(request, 'administration/etudiants/nav_filieres.html', {
+        'dept':    dept,
+        'groupes': groupes,
+    })
+
+
+@login_required
+def etudiants_classes(request, dept_id, filiere_id):
+    """Étape 3 : choisir une classe"""
+    dept    = get_object_or_404(Departement, pk=dept_id)
+    filiere = get_object_or_404(Filiere, pk=filiere_id)
+    classes = filiere.classes.all().order_by('niveau', 'nom')
+
+    classes_data = []
+    for cl in classes:
+        nb = Etudiant.objects.filter(
+            filiere=filiere, statut='inscrit'
+        ).count()
+        classes_data.append({'classe': cl, 'nb_etudiants': nb})
+
+    # Si aucune classe : afficher directement les étudiants de la filière
+    if not classes.exists():
+        etudiants = Etudiant.objects.filter(
+            filiere=filiere, statut='inscrit'
+        ).order_by('nom')
+        return render(request, 'administration/etudiants/nav_classes.html', {
+            'dept':          dept,
+            'filiere':       filiere,
+            'classes_data':  [],
+            'etudiants_direct': etudiants,
+        })
+
+    return render(request, 'administration/etudiants/nav_classes.html', {
+        'dept':         dept,
+        'filiere':      filiere,
+        'classes_data': classes_data,
+    })
+
+
+@login_required
+def etudiants_liste_classe(request, dept_id, filiere_id, classe_id):
+    """Étape 4 : liste des étudiants d'une classe"""
+    dept    = get_object_or_404(Departement, pk=dept_id)
+    filiere = get_object_or_404(Filiere, pk=filiere_id)
+    classe  = get_object_or_404(Classe, pk=classe_id)
+
+    # Les étudiants de cette filière (classe = niveau de la filière)
+    etudiants = Etudiant.objects.filter(
+        filiere=filiere, statut='inscrit'
+    ).order_by('nom', 'prenom')
+
+    query = request.GET.get('q', '')
+    if query:
+        etudiants = etudiants.filter(
+            nom__icontains=query
+        ) | Etudiant.objects.filter(
+            prenom__icontains=query, filiere=filiere
+        )
+
+    return render(request, 'administration/etudiants/nav_liste.html', {
+        'dept':      dept,
+        'filiere':   filiere,
+        'classe':    classe,
+        'etudiants': etudiants,
+        'query':     query,
+    })
+
+
+# ══════════════════════════════════════════
+# NAVIGATION ENSEIGNANTS
+# ══════════════════════════════════════════
+
+@login_required
+def enseignants_departements(request):
+    """Étape 1 : choisir un département"""
+    departements = Departement.objects.all()
+    dept_data = []
+    for dept in departements:
+        nb = Enseignant.objects.filter(
+            departement=dept, actif=True
+        ).count()
+        dept_data.append({'dept': dept, 'nb_enseignants': nb})
+
+    return render(request, 'administration/enseignants/nav_departements.html', {
+        'dept_data': dept_data,
+    })
+
+
+@login_required
+def enseignants_liste(request, dept_id):
+    """Étape 2 : liste des enseignants du département"""
+    dept        = get_object_or_404(Departement, pk=dept_id)
+    enseignants = Enseignant.objects.filter(
+        departement=dept, actif=True
+    ).order_by('grade', 'nom')
+
+    query = request.GET.get('q', '')
+    if query:
+        enseignants = enseignants.filter(
+            nom__icontains=query
+        ) | Enseignant.objects.filter(
+            prenom__icontains=query, departement=dept, actif=True
+        )
+
+    return render(request, 'administration/enseignants/nav_liste.html', {
+        'dept':        dept,
+        'enseignants': enseignants,
+        'query':       query,
+    })
+
+
+@login_required
+def detail_enseignant(request, pk):
+    """Fiche enseignant + emploi du temps + matières par classe"""
+    from pedagogie.models import EmploiDuTemps, Matiere
+
+    enseignant = get_object_or_404(Enseignant, pk=pk)
+
+    # Toutes les séances de cet enseignant
+    seances = EmploiDuTemps.objects.filter(
+        enseignant=enseignant
+    ).select_related('matiere', 'salle', 'matiere__filiere').order_by('jour', 'heure_debut')
+
+    # Regrouper par jour pour l'emploi du temps
+    JOURS = {1:'Lundi', 2:'Mardi', 3:'Mercredi', 4:'Jeudi', 5:'Vendredi', 6:'Samedi'}
+    emploi_par_jour = {}
+    for j_num, j_nom in JOURS.items():
+        seances_jour = [s for s in seances if s.jour == j_num]
+        if seances_jour:
+            emploi_par_jour[j_nom] = seances_jour
+
+    # Matières par classe/filière enseignées
+    # Regrouper : filière → liste de matières distinctes
+    matieres_par_filiere = {}
+    for seance in seances:
+        filiere = seance.matiere.filiere
+        key     = filiere.nom
+        if key not in matieres_par_filiere:
+            matieres_par_filiere[key] = {
+                'filiere':  filiere,
+                'matieres': set(),
+                'classes':  set(),
+            }
+        matieres_par_filiere[key]['matieres'].add(seance.matiere.nom)
+        # Trouver les classes associées à cette filière
+        for cl in filiere.classes.all():
+            matieres_par_filiere[key]['classes'].add(cl.nom)
+
+    # Convertir les sets en listes pour le template
+    matieres_classes = []
+    for key, val in matieres_par_filiere.items():
+        matieres_classes.append({
+            'filiere':  val['filiere'],
+            'matieres': sorted(val['matieres']),
+            'classes':  sorted(val['classes']),
+        })
+
+    # Aussi les séances explicitement par classe (si EmploiDuTemps a un champ classe)
+    # On regroupe directement seance → matiere → filiere → classes de cette filière
+    seances_par_classe = {}
+    for seance in seances:
+        for cl in seance.matiere.filiere.classes.all():
+            key = cl.nom
+            if key not in seances_par_classe:
+                seances_par_classe[key] = {
+                    'classe':   cl,
+                    'matieres': [],
+                }
+            mat_entry = {
+                'matiere':    seance.matiere.nom,
+                'type':       seance.get_type_seance_display(),
+                'heure':      f"{seance.heure_debut.strftime('%H:%M')} – {seance.heure_fin.strftime('%H:%M')}",
+                'jour':       JOURS.get(seance.jour, ''),
+            }
+            # Éviter les doublons
+            if mat_entry not in seances_par_classe[key]['matieres']:
+                seances_par_classe[key]['matieres'].append(mat_entry)
+
+    return render(request, 'administration/enseignants/detail.html', {
+        'enseignant':       enseignant,
+        'seances':          seances,
+        'emploi_par_jour':  emploi_par_jour,
+        'matieres_classes': matieres_classes,
+        'seances_par_classe': seances_par_classe.values(),
+        'jours_ordre':      list(JOURS.values()),
+    })
 # ──────────────────────────────────────────
 # INSCRIPTIONS
 # ──────────────────────────────────────────

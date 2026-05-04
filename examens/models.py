@@ -1,45 +1,84 @@
 from django.db import models
-from administration.models import Etudiant, Salle
+from administration.models import Etudiant, Salle, Classe
 from pedagogie.models import Matiere
 
+
 class SessionExamen(models.Model):
-    TYPE_CHOICES = [('principale','Principale'),('rattrapage','Rattrapage')]
-    nom = models.CharField(max_length=100)
-    type_session = models.CharField(max_length=15, choices=TYPE_CHOICES)
+    TYPE_CHOICES = [
+        ('principale', 'Principale'),
+        ('rattrapage',  'Rattrapage'),
+    ]
+    nom                 = models.CharField(max_length=100)
+    type_session        = models.CharField(max_length=15, choices=TYPE_CHOICES)
     annee_universitaire = models.CharField(max_length=9)
-    semestre = models.IntegerField(choices=[(1,'S1'),(2,'S2')])
-    date_debut = models.DateField()
-    date_fin = models.DateField()
+    semestre            = models.IntegerField(choices=[(1,'S1'),(2,'S2')])
+    date_debut          = models.DateField()
+    date_fin            = models.DateField()
 
     def __str__(self):
-        return f"Session {self.nom} - {self.annee_universitaire}"
+        return f"Session {self.nom} — {self.annee_universitaire}"
 
 
 class PlanningExamen(models.Model):
-    session = models.ForeignKey(SessionExamen, on_delete=models.CASCADE)
-    matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE)
-    salle = models.ForeignKey(Salle, on_delete=models.SET_NULL, null=True)
-    date = models.DateField()
+    session     = models.ForeignKey(SessionExamen, on_delete=models.CASCADE)
+    matiere     = models.ForeignKey(Matiere, on_delete=models.CASCADE)
+    salle       = models.ForeignKey(
+        Salle, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    classe      = models.ForeignKey(
+        'administration.Classe', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='examens'
+    )
+    date        = models.DateField()
     heure_debut = models.TimeField()
-    heure_fin = models.TimeField()
-    surveillants = models.ManyToManyField('administration.Enseignant', blank=True)
+    heure_fin   = models.TimeField()
+    surveillants = models.ManyToManyField(
+        'administration.Enseignant', blank=True
+    )
+
+    class Meta:
+        ordering = ['date', 'heure_debut']
 
     def __str__(self):
-        return f"{self.matiere} - {self.date}"
+        return f"{self.matiere} — {self.date}"
+
+    def is_conflit_salle(self):
+        """Vérifie si la salle est déjà occupée au même créneau"""
+        if not self.salle:
+            return False
+        conflits = PlanningExamen.objects.filter(
+            salle=self.salle,
+            date=self.date,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut,
+        ).exclude(pk=self.pk)
+        return conflits.exists()
+
+    def is_conflit_classe(self):
+        """Vérifie si la classe a déjà un examen au même créneau"""
+        if not self.classe:
+            return False
+        conflits = PlanningExamen.objects.filter(
+            classe=self.classe,
+            date=self.date,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut,
+        ).exclude(pk=self.pk)
+        return conflits.exists()
 
 
 class ResultatExamen(models.Model):
-    etudiant = models.ForeignKey(Etudiant, on_delete=models.CASCADE)
-    session = models.ForeignKey(SessionExamen, on_delete=models.CASCADE)
-    matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE)
-    note_exam = models.FloatField(null=True, blank=True)
-    note_ds = models.FloatField(null=True, blank=True)
-    note_tp = models.FloatField(null=True, blank=True)
+    etudiant    = models.ForeignKey(Etudiant, on_delete=models.CASCADE)
+    session     = models.ForeignKey(SessionExamen, on_delete=models.CASCADE)
+    matiere     = models.ForeignKey(Matiere, on_delete=models.CASCADE)
+    note_exam   = models.FloatField(null=True, blank=True)
+    note_ds     = models.FloatField(null=True, blank=True)
+    note_tp     = models.FloatField(null=True, blank=True)
     note_finale = models.FloatField(null=True, blank=True)
-    valide = models.BooleanField(default=False)
+    valide      = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ['etudiant','session','matiere']
+        unique_together = ['etudiant', 'session', 'matiere']
 
     def calculer_note_finale(self):
         if self.note_exam and self.note_ds:
@@ -49,4 +88,4 @@ class ResultatExamen(models.Model):
         return None
 
     def __str__(self):
-        return f"{self.etudiant} - {self.matiere}: {self.note_finale}"
+        return f"{self.etudiant} — {self.matiere}: {self.note_finale}"

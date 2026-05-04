@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             name='Departement',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(choices=[('mathematiques', 'Mathématiques'), ('informatique', 'Informatique'), ('physique', 'Physique'), ('chimie', 'Chimie'), ('sciences_vie', 'Sciences de la Vie'), ('sciences_terre', 'Sciences de la Terre')], max_length=50, unique=True)),
+                ('nom', models.CharField(choices=[('mathematiques', 'Mathématiques'), ('informatique', 'Informatique'), ('physique', 'Physique'), ('chimie', 'Chimie'), ('biologie', 'Sciences de la Vie'), ('geologie', 'Sciences de la Terre')], max_length=50, unique=True)),
                 ('description', models.TextField(blank=True)),
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('chef', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='dept_dirige', to=settings.AUTH_USER_MODEL)),

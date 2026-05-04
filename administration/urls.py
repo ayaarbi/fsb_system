@@ -60,6 +60,7 @@ urlpatterns = [
     path('salles/',
          views.gestion_salles,
          name='salles'),
+     path('attestation/<int:pk>/', views.attestation_inscription, name='attestation'),
 
     # ── Navigation Formations (dashboard) ──
     path('formation/<str:type_formation>/',

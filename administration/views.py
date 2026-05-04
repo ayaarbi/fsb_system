@@ -6,7 +6,12 @@ from .models import Departement, Filiere, Enseignant, Etudiant, Salle, Inscripti
 from pedagogie.models import Note, Absence
 from examens.models import SessionExamen
 from django.db import models
-
+import qrcode
+import io
+import base64
+from django.http import HttpResponse
+from django.utils import timezone
+from django.template.loader import render_to_string
 
 # ──────────────────────────────────────────
 # DASHBOARD
@@ -17,7 +22,7 @@ def dashboard(request):
         'nb_etudiants':    Etudiant.objects.filter(statut='inscrit').count(),
         'nb_enseignants':  Enseignant.objects.filter(actif=True).count(),
         'nb_filieres':     Filiere.objects.count(),
-        'nb_inscriptions': Inscription.objects.filter(valide=True).count(),
+        'nb_inscriptions': Inscription.objects.filter(statut='valide').count(),
     }
     dept_stats       = Departement.objects.annotate(nb_filieres=Count('filieres'))
     sessions_recentes = SessionExamen.objects.order_by('-date_debut')[:3]
@@ -195,7 +200,7 @@ def detail_enseignant(request, pk):
     })
 
 # ──────────────────────────────────────────
-# DASHBOARD  (remplacer l'ancienne fonction)
+# DASHBOARD  
 # ──────────────────────────────────────────
 @login_required
 def dashboard(request):
@@ -204,7 +209,7 @@ def dashboard(request):
         'nb_etudiants':    Etudiant.objects.filter(statut='inscrit').count(),
         'nb_enseignants':  Enseignant.objects.filter(actif=True).count(),
         'nb_filieres':     Filiere.objects.count(),
-        'nb_inscriptions': Inscription.objects.filter(valide=True).count(),
+        'nb_inscriptions': Inscription.objects.filter(statut='valide').count(),
     }
 
     # Comptages par type de formation pour les boutons
@@ -568,41 +573,134 @@ def detail_enseignant(request, pk):
 # ──────────────────────────────────────────
 @login_required
 def gestion_inscriptions(request):
-    if request.method == 'POST':
+    # POST : Nouvelle inscription
+    if request.method == 'POST' and request.POST.get('action') == 'inscrire':
         try:
+            etudiant = get_object_or_404(Etudiant, pk=request.POST['etudiant'])
             ins, created = Inscription.objects.get_or_create(
-                etudiant_id         = request.POST['etudiant'],
-                annee_universitaire = request.POST['annee_univ'],
+                etudiant=etudiant,
+                annee_universitaire=request.POST['annee_univ'],
                 defaults={
-                    'filiere_id': request.POST.get('filiere'),
-                    'valide':     False,
+                    'filiere': etudiant.filiere,
+                    'statut':  'en_attente',
                 }
             )
             if not created:
                 messages.warning(request, "L'étudiant est déjà inscrit pour cette année.")
             else:
-                messages.success(request, "Inscription enregistrée !")
+                messages.success(request, f"Inscription de {etudiant.get_full_name()} créée !")
         except Exception as e:
             messages.error(request, f"Erreur : {e}")
+        return redirect('administration:inscriptions')
+
+    # POST : Changer le statut d'une inscription
+    if request.method == 'POST' and request.POST.get('action') == 'changer_statut':
+        try:
+            ins = get_object_or_404(Inscription, pk=request.POST['inscription_id'])
+            nouveau_statut = request.POST['statut']
+            ins.statut      = nouveau_statut
+            ins.commentaire = request.POST.get('commentaire', '')
+            if nouveau_statut == 'validee':
+                ins.date_validation = timezone.now().date()
+                ins.valide_par      = request.user.get_full_name()
+            ins.save()
+            messages.success(request, f"Statut mis à jour : {ins.get_statut_display()}")
+        except Exception as e:
+            messages.error(request, f"Erreur : {e}")
+        return redirect('administration:inscriptions')
+
+    # Filtres
+    statut_filtre   = request.GET.get('statut', '')
+    annee_filtre    = request.GET.get('annee', '')
+    dept_filtre     = request.GET.get('dept', '')
+    query           = request.GET.get('q', '')
 
     inscriptions = Inscription.objects.select_related(
-        'etudiant', 'filiere').order_by('-date_inscription')
+        'etudiant', 'filiere', 'filiere__departement'
+    ).all()
+
+    if statut_filtre:
+        inscriptions = inscriptions.filter(statut=statut_filtre)
+    if annee_filtre:
+        inscriptions = inscriptions.filter(annee_universitaire=annee_filtre)
+    if dept_filtre:
+        inscriptions = inscriptions.filter(filiere__departement_id=dept_filtre)
+    if query:
+        inscriptions = inscriptions.filter(
+            etudiant__nom__icontains=query
+        ) | inscriptions.filter(
+            etudiant__prenom__icontains=query
+        ) | inscriptions.filter(
+            etudiant__numero_etudiant__icontains=query
+        )
+
+    # Comptages par statut pour les indicateurs
+    from django.db.models import Count
+    stats_statut = {
+        'en_attente':         Inscription.objects.filter(statut='en_attente').count(),
+        'dossier_incomplet':  Inscription.objects.filter(statut='dossier_incomplet').count(),
+        'frais_non_payes':    Inscription.objects.filter(statut='frais_non_payes').count(),
+        'validee':            Inscription.objects.filter(statut='validee').count(),
+        'suspendue':          Inscription.objects.filter(statut='suspendue').count(),
+        'annulee':            Inscription.objects.filter(statut='annulee').count(),
+    }
+
     return render(request, 'administration/inscriptions.html', {
-        'inscriptions': inscriptions,
-        'etudiants':    Etudiant.objects.filter(statut='inscrit'),
-        'filieres':     Filiere.objects.all(),
+        'inscriptions':   inscriptions,
+        'etudiants':      Etudiant.objects.filter(statut='inscrit').order_by('nom'),
+        'departements':   Departement.objects.all(),
+        'statut_choices': Inscription.STATUT_CHOICES,
+        'statut_filtre':  statut_filtre,
+        'annee_filtre':   annee_filtre,
+        'dept_filtre':    dept_filtre,
+        'query':          query,
+        'stats':          stats_statut,
     })
 
 
 @login_required
 def valider_inscription(request, pk):
     ins = get_object_or_404(Inscription, pk=pk)
-    ins.valide = not ins.valide
+    ins.statut          = 'validee'
+    ins.date_validation = timezone.now().date()
+    ins.valide_par      = request.user.get_full_name()
     ins.save()
-    etat = "validée" if ins.valide else "invalidée"
-    messages.success(request, f"Inscription {etat}.")
+    messages.success(request, f"Inscription de {ins.etudiant.get_full_name()} validée !")
     return redirect('administration:inscriptions')
 
+
+@login_required
+def attestation_inscription(request, pk):
+    """Génère une attestation d'inscription avec QR Code"""
+    ins = get_object_or_404(Inscription, pk=pk)
+
+    if ins.statut != 'validee':
+        messages.error(request, "Seules les inscriptions validées peuvent avoir une attestation.")
+        return redirect('administration:inscriptions')
+
+    # Générer QR Code
+    qr_data = (
+        f"FSB-ATTESTATION\n"
+        f"Etudiant: {ins.etudiant.get_full_name()}\n"
+        f"N: {ins.etudiant.numero_etudiant}\n"
+        f"Filiere: {ins.filiere.nom}\n"
+        f"Annee: {ins.annee_universitaire}\n"
+        f"Date validation: {ins.date_validation}\n"
+        f"Valide par: {ins.valide_par}"
+    )
+    qr = qrcode.QRCode(version=1, box_size=6, border=2)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#0b1e3d", back_color="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_b64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return render(request, 'administration/attestation.html', {
+        'ins':    ins,
+        'qr_b64': qr_b64,
+    })
 
 # ──────────────────────────────────────────
 # SALLES

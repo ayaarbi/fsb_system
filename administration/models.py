@@ -164,15 +164,37 @@ class Salle(models.Model):
 
 
 class Inscription(models.Model):
-    etudiant            = models.ForeignKey(Etudiant, on_delete=models.CASCADE,
-                                            related_name='inscriptions')
+    STATUT_CHOICES = [
+        ('en_attente',    'En attente de validation'),
+        ('dossier_incomplet', 'Dossier incomplet'),
+        ('frais_non_payes',   'Frais non payés'),
+        ('validee',       'Validée'),
+        ('suspendue',     'Suspendue'),
+        ('annulee',       'Annulée'),
+    ]
+    etudiant            = models.ForeignKey(
+        Etudiant, on_delete=models.CASCADE, related_name='inscriptions'
+    )
     filiere             = models.ForeignKey(Filiere, on_delete=models.CASCADE)
-    annee_universitaire = models.CharField(max_length=9)
+    annee_universitaire = models.CharField(max_length=9, default='2024-2025')
     date_inscription    = models.DateField(auto_now_add=True)
-    valide              = models.BooleanField(default=False)
+    statut              = models.CharField(
+        max_length=25, choices=STATUT_CHOICES, default='en_attente'
+    )
+    commentaire         = models.TextField(
+        blank=True, default='',
+        help_text="Commentaire de l'administration"
+    )
+    date_validation     = models.DateField(null=True, blank=True)
+    valide_par          = models.CharField(max_length=100, blank=True, default='')
 
     class Meta:
         unique_together = ['etudiant', 'annee_universitaire']
+        ordering = ['-date_inscription']
+
+    @property
+    def valide(self):
+        return self.statut == 'validee'
 
     def __str__(self):
-        return f"{self.etudiant} — {self.annee_universitaire}"
+        return f"{self.etudiant} — {self.annee_universitaire} [{self.get_statut_display()}]"

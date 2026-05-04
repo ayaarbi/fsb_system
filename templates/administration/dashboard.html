@@ -52,7 +52,7 @@
     <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px">
 
       <a href="{% url 'administration:formation_detail' 'licence' %}"
-         style="flex:1;min-width:160px;text-decoration:none">
+        style="flex:1;min-width:160px;text-decoration:none">
         <div class="formation-btn" style="background:#0b1e3d">
           <div class="fb-icon"><i class="fas fa-book-open"></i></div>
           <div class="fb-label">LICENCES</div>
@@ -61,7 +61,7 @@
       </a>
 
       <a href="{% url 'administration:formation_detail' 'master' %}"
-         style="flex:1;min-width:160px;text-decoration:none">
+        style="flex:1;min-width:160px;text-decoration:none">
         <div class="formation-btn" style="background:#2563eb">
           <div class="fb-icon"><i class="fas fa-graduation-cap"></i></div>
           <div class="fb-label">MASTERS</div>
@@ -70,7 +70,7 @@
       </a>
 
       <a href="{% url 'administration:formation_detail' 'doctorat' %}"
-         style="flex:1;min-width:160px;text-decoration:none">
+        style="flex:1;min-width:160px;text-decoration:none">
         <div class="formation-btn" style="background:#0e7490">
           <div class="fb-icon"><i class="fas fa-microscope"></i></div>
           <div class="fb-label">DOCTORAT</div>
@@ -78,8 +78,7 @@
         </div>
       </a>
 
-      <a href="{% url 'administration:formation_detail' 'cpi' %}"
-         style="flex:1;min-width:160px;text-decoration:none">
+      <a href="{% url 'administration:formation_detail' 'cpi' %}" style="flex:1;min-width:160px;text-decoration:none">
         <div class="formation-btn" style="background:#1e3a8a">
           <div class="fb-icon"><i class="fas fa-flask"></i></div>
           <div class="fb-label">CPI</div>
@@ -87,8 +86,7 @@
         </div>
       </a>
 
-      <a href="{% url 'administration:formation_detail' 'ci' %}"
-         style="flex:1;min-width:160px;text-decoration:none">
+      <a href="{% url 'administration:formation_detail' 'ci' %}" style="flex:1;min-width:160px;text-decoration:none">
         <div class="formation-btn" style="background:#4c1d95">
           <div class="fb-icon"><i class="fas fa-cogs"></i></div>
           <div class="fb-label">CI</div>
@@ -114,8 +112,7 @@
     <div class="card-fsb">
       <div class="card-fsb-header">
         <div class="header-left"><i class="fas fa-graduation-cap"></i> Sessions d'Examens</div>
-        <a href="{% url 'examens:ajouter_session' %}"
-           class="btn-primary-fsb btn-xs" style="color:white">
+        <a href="{% url 'examens:ajouter_session' %}" class="btn-primary-fsb btn-xs" style="color:white">
           <i class="fas fa-plus"></i> Nouvelle
         </a>
       </div>
@@ -154,12 +151,10 @@
         <span class="badge-pill b-green">2 actifs</span>
       </div>
       <div class="card-fsb-body" style="padding:14px">
-        <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin"
-           style="display:flex;align-items:center;gap:12px;padding:12px;
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin" style="display:flex;align-items:center;gap:12px;padding:12px;
                   background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;
                   margin-bottom:10px;text-decoration:none;transition:all 0.2s"
-           onmouseover="this.style.background='#dbeafe'"
-           onmouseout="this.style.background='#eff6ff'">
+          onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
           <div style="width:40px;height:40px;border-radius:10px;
                       background:linear-gradient(135deg,#1e3a8a,#2563eb);
                       display:flex;align-items:center;justify-content:center;
@@ -174,12 +169,10 @@
           </div>
           <i class="fas fa-chevron-right ms-auto" style="color:#93c5fd;font-size:0.8rem"></i>
         </a>
-        <a href="{% url 'ai_agents:chat' %}?agent=assistant_pedagogique"
-           style="display:flex;align-items:center;gap:12px;padding:12px;
+        <a href="{% url 'ai_agents:chat' %}?agent=assistant_pedagogique" style="display:flex;align-items:center;gap:12px;padding:12px;
                   background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;
-                  text-decoration:none;transition:all 0.2s"
-           onmouseover="this.style.background='#dcfce7'"
-           onmouseout="this.style.background='#f0fdf4'">
+                  text-decoration:none;transition:all 0.2s" onmouseover="this.style.background='#dcfce7'"
+          onmouseout="this.style.background='#f0fdf4'">
           <div style="width:40px;height:40px;border-radius:10px;
                       background:linear-gradient(135deg,#065f46,#059669);
                       display:flex;align-items:center;justify-content:center;
@@ -206,29 +199,23 @@
       </div>
       <div class="card-fsb-body" style="padding:14px">
         <div style="display:flex;flex-direction:column;gap:7px">
-          <a href="{% url 'administration:ajouter_etudiant' %}"
-             class="btn-primary-fsb btn-sm w-100"
-             style="justify-content:flex-start">
+          <a href="{% url 'administration:ajouter_etudiant' %}" class="btn-primary-fsb btn-sm w-100"
+            style="justify-content:flex-start">
             <i class="fas fa-user-plus"></i> Ajouter Étudiant
           </a>
-          <a href="{% url 'administration:ajouter_enseignant' %}"
-             class="btn-outline-fsb btn-sm w-100"
-             style="justify-content:flex-start">
+          <a href="{% url 'administration:ajouter_enseignant' %}" class="btn-outline-fsb btn-sm w-100"
+            style="justify-content:flex-start">
             <i class="fas fa-user-tie"></i> Ajouter Enseignant
           </a>
-          <a href="{% url 'pedagogie:notes' %}"
-             class="btn-ghost-fsb btn-sm w-100"
-             style="justify-content:flex-start">
+          <a href="{% url 'pedagogie:notes' %}" class="btn-ghost-fsb btn-sm w-100" style="justify-content:flex-start">
             <i class="fas fa-clipboard-list"></i> Saisir Notes
           </a>
-          <a href="{% url 'examens:ajouter_session' %}"
-             class="btn-ghost-fsb btn-sm w-100"
-             style="justify-content:flex-start">
+          <a href="{% url 'examens:ajouter_session' %}" class="btn-ghost-fsb btn-sm w-100"
+            style="justify-content:flex-start">
             <i class="fas fa-calendar-plus"></i> Nouvelle Session
           </a>
-          <a href="{% url 'stages:nouvelle_demande' %}"
-             class="btn-ghost-fsb btn-sm w-100"
-             style="justify-content:flex-start">
+          <a href="{% url 'stages:nouvelle_demande' %}" class="btn-ghost-fsb btn-sm w-100"
+            style="justify-content:flex-start">
             <i class="fas fa-briefcase"></i> Demande Stage
           </a>
         </div>
@@ -242,44 +229,51 @@
 
 {% block extra_css %}
 <style>
-.formation-btn {
-  border-radius: 14px;
-  padding: 22px 18px;
-  text-align: center;
-  color: white;
-  transition: all 0.25s;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  position: relative;
-  overflow: hidden;
-}
-.formation-btn::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 100px; height: 100px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.07);
-}
-.formation-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
-}
-.fb-icon {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  opacity: 0.9;
-}
-.fb-label {
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin-bottom: 5px;
-}
-.fb-count {
-  font-size: 0.72rem;
-  opacity: 0.7;
-  font-weight: 500;
-}
+  .formation-btn {
+    border-radius: 14px;
+    padding: 22px 18px;
+    text-align: center;
+    color: white;
+    transition: all 0.25s;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .formation-btn::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .formation-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  }
+
+  .fb-icon {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    opacity: 0.9;
+  }
+
+  .fb-label {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+  }
+
+  .fb-count {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    font-weight: 500;
+  }
 </style>
 {% endblock %}

@@ -20,8 +20,8 @@ depts_data = [
     ('informatique',   'Dr. Ben Ammar Khalil'),
     ('physique',       'Dr. Trabelsi Riadh'),
     ('chimie',         'Dr. Mbarek Sonia'),
-    ('sciences_vie',   'Dr. Zouari Leila'),
-    ('sciences_terre', 'Dr. Gharbi Nabil'),
+    ('biologie',   'Dr. Zouari Leila'),
+    ('geologie', 'Dr. Gharbi Nabil'),
 ]
 depts = {}
 for nom, chef in depts_data:
@@ -36,8 +36,8 @@ di = depts['informatique']
 dm = depts['mathematiques']
 dp = depts['physique']
 dc = depts['chimie']
-db = depts['sciences_vie']
-dt = depts['sciences_terre']
+db = depts['biologie']
+dt = depts['geologie']
 
 # ──────────────────────────────────────────
 # 2. FILIERES — LICENCES

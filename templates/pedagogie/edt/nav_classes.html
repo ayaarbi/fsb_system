@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block page_icon %}<i class="fas fa-calendar-week"></i>{% endblock %}
+{% block page_title %}EDT — {{ filiere.nom }}{% endblock %}
+{% block content %}
+<nav style="margin-bottom:16px;font-size:0.83rem;color:#94a3b8">
+  <a href="{% url 'pedagogie:emploi_du_temps' %}" style="color:#2563eb;text-decoration:none;font-weight:600">EDT</a>
+  <span style="margin:0 8px">›</span>
+  <a href="{% url 'pedagogie:edt_filieres' dept.pk %}" style="color:#2563eb;text-decoration:none;font-weight:600">{{ dept.get_nom_display }}</a>
+  <span style="margin:0 8px">›</span>
+  <span style="color:#0b1e3d;font-weight:700">{{ filiere.nom }}</span>
+</nav>
+<div class="page-header">
+  <div><h1>{{ filiere.nom }}</h1><p class="sub">Choisissez une classe</p></div>
+</div>
+<div class="row g-3">
+  {% for item in cl_data %}
+  <div class="col-lg-4 col-md-6 fu fu{{ forloop.counter }}">
+    <a href="{% url 'pedagogie:edt_classe' item.classe.pk %}" class="link-unstyled">
+      <div class="card-fsb card-hover">
+        <div class="card-header">
+          <div class="card-title">{{ item.classe.nom }}</div>
+          <div class="card-subtitle">{{ item.classe.get_niveau_display }} — {{ item.classe.annee_universitaire }}</div>
+        </div>
+        <div class="card-body">
+          <div>
+            <div class="card-number">{{ item.nb_seances }}</div>
+            <div class="card-label">Séances</div>
+          </div>
+          <span class="card-link">Voir EDT <i class="fas fa-arrow-right ms-1"></i></span>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card-fsb">
+      <div class="card-fsb-body">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-door-open"></i></div>
+          <h5>Aucune classe</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

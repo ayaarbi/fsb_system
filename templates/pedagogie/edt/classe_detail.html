@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block page_icon %}<i class="fas fa-calendar-week"></i>{% endblock %}
+{% block page_title %}Emploi du temps — {{ filiere.nom }}{% endblock %}
+{% block content %}
+<style>
+    .breadcrumb-nav {
+  margin-bottom: 16px;
+  font-size: 0.83rem;
+  color: #94a3b8;
+}
+.breadcrumb-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+.breadcrumb-sep {
+  margin: 0 8px;
+}
+.breadcrumb-current {
+  color: #0b1e3d;
+  font-weight: 700;
+}
+
+.card-hover {
+  transition: all 0.25s;
+  cursor: pointer;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37,99,235,0.15);
+}
+
+.card-header {
+  background: linear-gradient(135deg,#1e3a8a,#2563eb);
+  padding: 18px 20px;
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: white;
+}
+.card-subtitle {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  margin-top: 2px;
+}
+
+.card-body {
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-number {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+.card-label {
+  font-size: 0.71rem;
+  color: #94a3b8;
+}
+.card-link {
+  font-size: 0.78rem;
+  color: #2563eb;
+  font-weight: 600;
+}
+</style>
+
+<nav class="breadcrumb-nav">
+  <a href="{% url 'pedagogie:emploi_du_temps' %}" class="breadcrumb-link">Emploi du temps</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="{% url 'pedagogie:edt_filieres' dept.pk %}" class="breadcrumb-link">{{ dept.get_nom_display }}</a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">{{ filiere.nom }}</span>
+</nav>
+
+<div class="page-header">
+  <div>
+    <h1>{{ filiere.nom }}</h1>
+    <p class="sub">Choisissez une classe</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for item in cl_data %}
+  <div class="col-lg-4 col-md-6 fu fu{{ forloop.counter }}">
+    <a href="{% url 'pedagogie:edt_classe' item.classe.pk %}" class="link-unstyled">
+      <div class="card-fsb card-hover">
+        <div class="card-header">
+          <div class="card-title">{{ item.classe.nom }}</div>
+          <div class="card-subtitle">{{ item.classe.get_niveau_display }} — {{ item.classe.annee_universitaire }}</div>
+        </div>
+        <div class="card-body">
+          <div>
+            <div class="card-number">{{ item.nb_seances }}</div>
+            <div class="card-label">Séances</div>
+          </div>
+          <span class="card-link">Voir Emploi du temps <i class="fas fa-arrow-right ms-1"></i></span>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card-fsb">
+      <div class="card-fsb-body">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-door-open"></i></div>
+          <h5>Aucune classe</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

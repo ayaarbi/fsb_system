@@ -73,7 +73,7 @@
             </a>
             <a href="{% url 'pedagogie:notes' %}"
                 class="sidebar-link {% if 'notes' in request.path %}active{% endif %}">
-                <span class="s-icon"><i class="fas fa-clipboard-list"></i></span>Saisie Notes
+                <span class="s-icon"><i class="fas fa-clipboard-list"></i></span>Notes & Résultats
             </a>
             <a href="{% url 'pedagogie:matieres' %}"
                 class="sidebar-link {% if 'matieres' in request.path %}active{% endif %}">
@@ -102,6 +102,10 @@
             <a href="{% url 'stages:diplomes' %}"
                 class="sidebar-link {% if 'diplomes' in request.path %}active{% endif %}">
                 <span class="s-icon"><i class="fas fa-scroll"></i></span>Diplômes
+            </a>
+            <a href="{% url 'stages:eligibles_diplome' %}"
+                class="sidebar-link {% if 'eligibles' in request.path %}active{% endif %}">
+                <span class="s-icon"><i class="fas fa-graduation-cap"></i></span>Éligibles Diplôme
             </a>
 
             <span class="nav-section">Intelligence Artificielle</span>

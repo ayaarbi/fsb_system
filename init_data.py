@@ -16,12 +16,12 @@ print("=" * 55)
 # ──────────────────────────────────────────
 print("\n--- 1. Departements ---")
 depts_data = [
-    ('mathematiques',  'Dr. Hamdi Salah'),
-    ('informatique',   'Dr. Ben Ammar Khalil'),
-    ('physique',       'Dr. Trabelsi Riadh'),
-    ('chimie',         'Dr. Mbarek Sonia'),
-    ('biologie',   'Dr. Zouari Leila'),
-    ('geologie', 'Dr. Gharbi Nabil'),
+    ('mathematiques',  'Khelifi Abdesattar'),
+    ('informatique',   'Kacem Fedi'),
+    ('physique',       'Dhifaoui Belgacem'),
+    ('chimie',         'Mahnaoui Mohamed'),
+    ('biologie',   'Ben Rhouma Khemais'),
+    ('geologie', 'Boughdiri Mabrouk'),
 ]
 depts = {}
 for nom, chef in depts_data:
@@ -283,25 +283,23 @@ for num, prenom, nom, cin, filiere, annee in etudiants_data:
 # ──────────────────────────────────────────
 # 11. AGENTS ADMINISTRATIFS
 # ──────────────────────────────────────────
-print("\n--- 11. Agents Administratifs ---")
-agents_data = [
-    ('admin',       'admin123',      'Admin',     'Systeme',    'super_admin', ''),
-    ('scolarite1',  'scolarite123',  'Mouna',     'Rekik',      'scolarite',   'Tous'),
-    ('scolarite2',  'scolarite123',  'Tarek',     'Bouaziz',    'scolarite',   'Tous'),
-    ('chef_info',   'chef123',       'Khalil',    'Ben Ammar',  'chef_dept',   'Informatique'),
-    ('chef_math',   'chef123',       'Salah',     'Hamdi',      'chef_dept',   'Mathematiques'),
-    ('doyen',       'doyen123',      'Directeur', 'FSB',        'doyen',       ''),
-]
-for username, pwd, first, last, role, dept in agents_data:
-    if not CustomUser.objects.filter(username=username).exists():
-        u = CustomUser.objects.create_user(
-            username=username, password=pwd,
-            first_name=first, last_name=last,
-            role=role, departement=dept
-        )
-        print(f"  [+] {username} cree (mdp: {pwd}) — role: {role}")
-    else:
-        print(f"  [=] {username} existe deja")
+print("\n--- 11. Agent Administratif ---")
+
+username = "admin"
+pwd = "admin"
+
+if not CustomUser.objects.filter(username=username).exists():
+    CustomUser.objects.create_user(
+        username=username,
+        password=pwd,
+        first_name="Admin",
+        last_name="Systeme",
+        role="super_admin",
+        departement=""
+    )
+    print(f"  [+] {username} créé (mdp: {pwd}) — rôle: super_admin")
+else:
+    print(f"  [=] {username} existe déjà")
 
 # ──────────────────────────────────────────
 # RESUME FINAL
@@ -322,11 +320,6 @@ print(f"  Etudiants    : {Etudiant.objects.count()}")
 print(f"  Salles       : {Salle.objects.count()}")
 print(f"  Agents admin : {CustomUser.objects.count()}")
 print("=" * 55)
-print("\n  COMPTES AGENTS :")
-print("  super_admin : admin      / admin123")
-print("  scolarite   : scolarite1 / scolarite123")
-print("  scolarite   : scolarite2 / scolarite123")
-print("  chef_dept   : chef_info  / chef123")
-print("  chef_dept   : chef_math  / chef123")
-print("  doyen       : doyen      / doyen123")
+print("\n  COMPTES ADMIN :")
+print("  super_admin : admin      / admin")
 print("=" * 55)

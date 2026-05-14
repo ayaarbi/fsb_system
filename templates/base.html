@@ -118,17 +118,6 @@
                 <span class="s-icon"><i class="fas fa-brain"></i></span>Assistant Péda.
             </a>
 
-            {% if user.is_super_admin %}
-            <span class="nav-section">Administration Système</span>
-            <a href="{% url 'accounts:gestion_agents' %}"
-                class="sidebar-link {% if 'agents' in request.path %}active{% endif %}">
-                <span class="s-icon"><i class="fas fa-users-cog"></i></span>Agents Admin
-            </a>
-            <a href="/admin/" class="sidebar-link" target="_blank">
-                <span class="s-icon"><i class="fas fa-cog"></i></span>Admin Django
-            </a>
-            {% endif %}
-
         </nav>
 
         <div class="sidebar-footer">

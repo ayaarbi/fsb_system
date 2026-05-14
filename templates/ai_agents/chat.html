@@ -3,10 +3,61 @@
 {% block title %}Assistant IA — FSB{% endblock %}
 {% block page_icon %}<i class="fas fa-robot"></i>{% endblock %}
 {% block page_title %}
-  {% if agent_type == 'assistant_admin' %}Assistant Administratif{% else %}Assistant Pédagogique{% endif %}
+  {% if agent_type == 'assistant_admin' %}🏛️ Assistant Administratif{% else %}📚 Assistant Pédagogique{% endif %}
 {% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+<style>
+  .examples-bar {
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.examples-label {
+  font-size: 0.69rem;
+  color: #94a3b8;
+  align-self: center;
+}
+
+.example-btn {
+  border: none;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.btn-admin {
+  background: #f0f5ff;
+  color: #2563eb;
+}
+
+.btn-student {
+  background: #f0fdf4;
+  color: #166534;
+}
+.action-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #dbeafe; color: #1d4ed8;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 0.68rem; font-weight: 700;
+  margin-bottom: 4px;
+}
+.msg-bubble ul { margin: 6px 0 6px 16px; padding: 0; }
+.msg-bubble li { margin-bottom: 3px; font-size: 0.88rem; }
+.msg-bubble strong { font-weight: 700; }
+.msg-bubble code {
+  background: rgba(255,255,255,0.2); padding: 1px 5px;
+  border-radius: 4px; font-family: monospace; font-size: 0.85em;
+}
+.msg-row.assistant .msg-bubble code {
+  background: #f0f5ff; color: #1d4ed8;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -14,9 +65,10 @@
      data-conv-id="{{ current_conv.pk|default:'' }}"
      data-agent-type="{{ agent_type }}">
 
-  <!-- ======== SIDEBAR ======== -->
+  <!-- ══ PANNEAU GAUCHE ══ -->
   <div class="chat-sidebar">
-    <!-- Agent card -->
+
+    <!-- Carte agent -->
     <div class="agent-card">
       <div class="agent-avatar {% if agent_type == 'assistant_admin' %}admin-av{% else %}peda-av{% endif %}">
         {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
@@ -26,18 +78,25 @@
         {% if agent_type == 'assistant_admin' %}Assistant Administratif{% else %}Assistant Pédagogique{% endif %}
       </div>
       <div class="agent-desc">
-        {% if agent_type == 'assistant_admin' %}Inscriptions · Stages · Documents · Procédures{% else %}Notes · Absences · Emploi du temps · Orientation{% endif %}
+        {% if agent_type == 'assistant_admin' %}
+          Gestion sessions · Inscriptions · Stages · Statistiques
+        {% else %}
+          Notes · Moyennes · Absences · Emploi du temps
+        {% endif %}
       </div>
-      <span class="agent-type-badge {% if agent_type == 'assistant_admin' %}admin-badge{% else %}peda-badge{% endif %}">
-        {% if agent_type == 'assistant_admin' %}Administration{% else %}Pédagogie{% endif %}
-      </span>
 
+      <!-- Statut IA -->
       <div class="api-status {% if has_api_key %}online{% else %}offline{% endif %}">
         <i class="fas fa-circle" style="font-size:0.5rem"></i>
-        {% if has_api_key %}Claude IA Actif{% else %}Mode Hors-ligne{% endif %}
+        {% if has_api_key %}
+          Grok — {{ tools_count }} actions disponibles
+        {% else %}
+          Mode Hors-ligne
+        {% endif %}
       </div>
 
-      <div class="switch-agents">
+      <!-- Switch agents -->
+      <div class="switch-agents" style="margin-top:12px">
         <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin"
            class="switch-btn {% if agent_type == 'assistant_admin' %}active{% endif %}">
           <span class="sw-icon">🏛️</span> Admin
@@ -49,7 +108,28 @@
       </div>
     </div>
 
-    <!-- History -->
+    <!-- Actions rapides -->
+    <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow)">
+      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">
+        <i class="fas fa-bolt me-1"></i> Actions Rapides
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        {% if agent_type == 'assistant_admin' %}
+        <button class="quick-btn" data-msg="Montre-moi les statistiques générales de la FSB" style="text-align:left;font-size:0.78rem">📊 Statistiques FSB</button>
+        <button class="quick-btn" data-msg="Crée une session principale S2 2024-2025 du 12 mai au 6 juin 2025" style="text-align:left;font-size:0.78rem">🎓 Créer session S2</button>
+        <button class="quick-btn" data-msg="Liste les demandes de stages en attente" style="text-align:left;font-size:0.78rem">📋 Stages en attente</button>
+        <button class="quick-btn" data-msg="Liste toutes les sessions d'examens" style="text-align:left;font-size:0.78rem">📅 Voir sessions</button>
+        <button class="quick-btn" data-msg="Liste les enseignants du département Informatique" style="text-align:left;font-size:0.78rem">👩‍🏫 Enseignants Info</button>
+        {% else %}
+        <button class="quick-btn" data-msg="Calcule les moyennes de la classe GL3-A pour le semestre 1" style="text-align:left;font-size:0.78rem">🧮 Calculer moyennes GL3-A</button>
+        <button class="quick-btn" data-msg="Affiche l'emploi du temps de la classe GL3-A" style="text-align:left;font-size:0.78rem">📅 EDT GL3-A</button>
+        <button class="quick-btn" data-msg="Montre les absences de la classe GL3-A" style="text-align:left;font-size:0.78rem">❌ Absences GL3-A</button>
+        <button class="quick-btn" data-msg="Statistiques générales FSB" style="text-align:left;font-size:0.78rem">📊 Statistiques</button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Historique -->
     <div class="history-panel">
       <div class="history-header">
         <i class="fas fa-history"></i> Conversations récentes
@@ -58,21 +138,22 @@
         {% for conv in conversations %}
         <a href="{% url 'ai_agents:chat' %}?agent={{ conv.agent_type }}&conv={{ conv.pk }}"
            class="history-item">
-          <div class="hi-title">{{ conv.titre|truncatechars:32 }}</div>
+          <div class="hi-title">{{ conv.titre|truncatechars:30 }}</div>
           <div class="hi-time">{{ conv.created_at|date:"d/m H:i" }}</div>
         </a>
         {% empty %}
-        <div style="padding:16px;text-align:center;font-size:0.79rem;color:#94a3b8">
+        <div style="padding:14px;text-align:center;font-size:0.79rem;color:#94a3b8">
           Aucune conversation
         </div>
         {% endfor %}
       </div>
     </div>
+
   </div>
 
-  <!-- ======== CHAT MAIN ======== -->
+  <!-- ══ CHAT PRINCIPAL ══ -->
   <div class="chat-main">
-    <!-- Header -->
+
     <div class="chat-header">
       <div class="ch-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
         {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
@@ -82,7 +163,13 @@
           {% if agent_type == 'assistant_admin' %}Assistant Administratif FSB{% else %}Assistant Pédagogique FSB{% endif %}
         </div>
         <div class="ch-sub">
-          {% if has_api_key %}Alimenté par Claude IA · Faculté des Sciences de Bizerte{% else %}Mode hors-ligne · Réponses automatiques FSB{% endif %}
+          {% if has_api_key %}
+            <span style="color:#16a34a">●</span>
+            Agent IA actif — peut créer, modifier et consulter les données FSB
+          {% else %}
+            <span style="color:#d97706">●</span>
+            Mode hors-ligne — configurez ANTHROPIC_API_KEY pour les actions complètes
+          {% endif %}
         </div>
       </div>
     </div>
@@ -96,34 +183,44 @@
         <div class="welcome-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
           {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
         </div>
-        <h4>Bonjour, {{ user.first_name }} !</h4>
-        <p>Je suis votre assistant {% if agent_type == 'assistant_admin' %}administratif{% else %}pédagogique{% endif %} de la FSB.<br>Comment puis-je vous aider aujourd'hui ?</p>
+        <h4>
+          {% if agent_type == 'assistant_admin' %}Bonjour, {{ user.first_name }} !{% else %}Assistant Pédagogique{% endif %}
+        </h4>
+        <p>
+          Je suis votre agent IA FSB. Je peux effectuer des <strong>actions réelles</strong> sur le système.<br>
+          <small style="color:#94a3b8">Demandez-moi de créer une session, valider un stage, calculer des moyennes...</small>
+        </p>
         <div class="quick-btns">
           {% if agent_type == 'assistant_admin' %}
-          <button class="quick-btn" data-msg="Comment faire une demande de stage ?">📋 Demande de stage</button>
-          <button class="quick-btn" data-msg="Quels documents pour l'inscription ?">📄 Inscription</button>
-          <button class="quick-btn" data-msg="Comment obtenir mon diplôme ?">🎓 Diplôme</button>
-          <button class="quick-btn" data-msg="Comment contacter l'administration ?">📞 Contact</button>
-          <button class="quick-btn" data-msg="Quels sont les frais universitaires ?">💰 Frais</button>
+          <button class="quick-btn" data-msg="Montre les statistiques de la FSB">📊 Stats FSB</button>
+          <button class="quick-btn" data-msg="Crée une session principale S2 2024-2025 du 12 mai au 6 juin 2025">🎓 Créer session S2</button>
+          <button class="quick-btn" data-msg="Liste les demandes de stages en attente">📋 Stages en attente</button>
+          <button class="quick-btn" data-msg="Cherche l'étudiant Trabelsi">🔍 Chercher étudiant</button>
+          <button class="quick-btn" data-msg="Donne-moi les infos du département Informatique">💻 Dept. Informatique</button>
           {% else %}
-          <button class="quick-btn" data-msg="Comment consulter mes notes ?">📊 Mes notes</button>
-          <button class="quick-btn" data-msg="Quand sont les examens ?">📅 Examens</button>
-          <button class="quick-btn" data-msg="Combien d'absences sont autorisées ?">❌ Absences</button>
-          <button class="quick-btn" data-msg="Quels sont les départements de la FSB ?">🏛️ Départements</button>
-          <button class="quick-btn" data-msg="Comment calculer ma moyenne générale ?">🧮 Moyenne</button>
+          <button class="quick-btn" data-msg="Calcule les moyennes de la classe GL3-A semestre 1">🧮 Moyennes GL3-A</button>
+          <button class="quick-btn" data-msg="Affiche l'emploi du temps de GL3-A semestre 1">📅 EDT GL3-A</button>
+          <button class="quick-btn" data-msg="Rapport d'absences classe GL3-A">❌ Absences</button>
+          <button class="quick-btn" data-msg="Statistiques générales">📊 Statistiques</button>
           {% endif %}
         </div>
       </div>
       {% endif %}
 
-      <!-- Previous messages -->
+      <!-- Messages existants -->
       {% for msg in conv_messages %}
       <div class="msg-row {{ msg.role }}">
         <div class="msg-av {% if msg.role == 'user' %}user-av{% else %}bot-av{% endif %}">
-          {% if msg.role == 'user' %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}🤖{% endif %}
+          {% if msg.role == 'user' %}
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          {% else %}
+            🤖
+          {% endif %}
         </div>
         <div>
-          <div class="msg-bubble">{{ msg.contenu|linebreaksbr }}</div>
+          <div class="msg-bubble" id="bubble-{{ forloop.counter }}">
+            {{ msg.contenu|linebreaksbr }}
+          </div>
           <div class="msg-time">{{ msg.timestamp|date:"H:i" }}</div>
         </div>
       </div>
@@ -132,31 +229,107 @@
       <!-- Typing indicator -->
       <div class="typing-row" id="typingIndicator" style="display:none">
         <div class="msg-av bot-av">🤖</div>
-        <div class="typing-bubble">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
+        <div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px">
+            <i class="fas fa-cog fa-spin me-1"></i> Agent en cours d'action...
+          </div>
+          <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Input -->
+    <!-- Zone de saisie -->
     <div class="chat-input-area">
       <textarea
         id="chatInput"
         class="chat-textarea"
-        placeholder="Posez votre question... (Entrée pour envoyer, Maj+Entrée pour saut de ligne)"
+        placeholder="Demandez une action ou posez une question... (Ex: 'Crée une session d'examen S2 du 12 mai au 6 juin')"
         rows="1"
       ></textarea>
-      <button class="send-btn" onclick="sendMessage()" title="Envoyer">
+      <button class="send-btn" onclick="sendMessage()" title="Envoyer (Entrée)">
         <i class="fas fa-paper-plane"></i>
       </button>
     </div>
-  </div>
 
+    <!-- Exemples d'actions -->
+    <div class="examples-bar">
+  <span class="examples-label">Exemples :</span>
+  {% if agent_type == 'assistant_admin' %}
+    <button class="example-btn btn-admin" data-msg="Crée une session de rattrapage S1 du 10 au 21 février 2025">Créer session</button>
+    <button class="example-btn btn-admin" data-msg="Valide l'inscription de l'étudiant 20240001">Valider inscription</button>
+    <button class="example-btn btn-admin" data-msg="Liste les enseignants du département Mathématiques">Lister enseignants</button>
+  {% else %}
+    <button class="example-btn btn-student" data-msg="Calcule les moyennes GL3-A S1 2024-2025">Calculer moyennes</button>
+    <button class="example-btn btn-student" data-msg="Affiche l'emploi du temps de ISI3-A semestre 1">Voir EDT</button>
+    <button class="example-btn btn-student" data-msg="Rapport absences de la classe GL3-A">Absences</button>
+  {% endif %}
+</div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/chat.js' %}"></script>
+<script>
+function setMsg(text) {
+  const input = document.getElementById('chatInput');
+  if (input) {
+    input.value = text;
+    input.focus();
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".example-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      setMsg(btn.dataset.msg);
+    });
+  });
+});
+// Rendu markdown simple pour les réponses
+function renderMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/^• (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n/g, '<br>');
+}
+
+// Override appendMessage pour supporter le markdown
+const _origAppend = window.appendMessage;
+window.appendMessage = function(role, text) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  const initials = role === 'user' ? getUserInitials() : '🤖';
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+  row.style.animation = 'fadeUp 0.3s ease both';
+  const avatarHTML = role === 'user'
+    ? `<div class="msg-av user-av">${initials}</div>`
+    : `<div class="msg-av bot-av" style="font-size:1rem">${initials}</div>`;
+  const renderedText = role === 'assistant' ? renderMarkdown(text) : escapeHtml(text).replace(/\n/g,'<br>');
+  row.innerHTML = `${avatarHTML}<div><div class="msg-bubble">${renderedText}</div><div class="msg-time">${now}</div></div>`;
+  const typing = document.getElementById('typingIndicator');
+  if (typing) container.insertBefore(row, typing);
+  else container.appendChild(row);
+  scrollChat();
+};
+
+// Rendu des bulles existantes
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.msg-row.assistant .msg-bubble').forEach(el => {
+    el.innerHTML = renderMarkdown(el.innerText);
+  });
+});
+</script>
 {% endblock %}

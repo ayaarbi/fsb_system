@@ -76,6 +76,5 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-# ⬇️ Ajoutez votre clé API ici pour activer Claude
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
-HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY', '')
+GEMINI_API_KEY = 'coller votre clé API Gemini ici'  
+GROQ_API_KEY = 'coller votre clé API Groq ici' 

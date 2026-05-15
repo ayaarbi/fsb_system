@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -263,7 +265,8 @@
         <div class="top-bar"></div>
         <div class="header">
             <div style="display:flex;align-items:center;gap:14px">
-                <div class="logo">🎓</div>
+                <div class="logo"><img src="{% static 'images/logo-fsb.jpg' %}" alt="Logo FSB" width="75" height="75"
+                        style="border-radius: 12px; object-fit: cover;"></div>
                 <div>
                     <div class="inst-name">Faculté des Sciences de Bizerte</div>
                     <div class="inst-sub">Université de Carthage — كلية العلوم ببنزرت</div>

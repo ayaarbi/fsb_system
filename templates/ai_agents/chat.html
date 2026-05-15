@@ -1,110 +1,312 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Assistant IA — FSB{% endblock %}
+{% block title %}Assistant AI — FSB{% endblock %}
 {% block page_icon %}<i class="fas fa-robot"></i>{% endblock %}
-{% block page_title %}
-  {% if agent_type == 'assistant_admin' %}🏛️ Assistant Administratif{% else %}📚 Assistant Pédagogique{% endif %}
-{% endblock %}
+{% block page_title %}🤖 Assistant AI FSB{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/chat.css' %}">
 <style>
-  .examples-bar {
+
+/* ══ AGENT BADGES ══════════════════════════════════════════════ */
+.agents-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.agent-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 0.69rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: default;
+}
+
+.agent-chip .chip-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.chip-admin  { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.chip-pedago { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+.chip-stage  { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.chip-stat   { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; }
+.chip-action { background: #f0fdfa; color: #0f766e; border-color: #99f6e4; grid-column: span 2; }
+
+/* ══ ACTIVE AGENT BADGE (topbar) ═══════════════════════════════ */
+.active-agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  transition: all .35s ease;
+}
+
+.active-agent-badge .badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: agentPulse 2s infinite;
+}
+
+@keyframes agentPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .4; transform: scale(.75); }
+}
+
+.badge-admin  { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.badge-admin  .badge-dot { background: #2563eb; }
+.badge-pedago { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+.badge-pedago .badge-dot { background: #16a34a; }
+.badge-stage  { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.badge-stage  .badge-dot { background: #c2410c; }
+.badge-stat   { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; }
+.badge-stat   .badge-dot { background: #7c3aed; }
+.badge-action { background: #f0fdfa; color: #0f766e; border-color: #99f6e4; }
+.badge-action .badge-dot { background: #0f766e; }
+
+/* ══ AGENT TAG ON BUBBLE ═══════════════════════════════════════ */
+.agent-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+}
+
+.tag-admin  { background: #dbeafe; color: #1d4ed8; }
+.tag-pedago { background: #dcfce7; color: #15803d; }
+.tag-stage  { background: #ffedd5; color: #c2410c; }
+.tag-stat   { background: #ede9fe; color: #6d28d9; }
+.tag-action { background: #ccfbf1; color: #0f766e; }
+
+/* ══ ACTION RESULT BOX ═════════════════════════════════════════ */
+.action-result {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 3px solid #22c55e;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: #15803d;
+}
+
+/* ══ SUGGESTION PILLS ══════════════════════════════════════════ */
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.suggestion-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.77rem;
+  color: #374151;
+  line-height: 1.4;
+  transition: border-color .2s, background .2s, transform .15s;
+  font-family: inherit;
+}
+
+.suggestion-card:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-2px);
+}
+
+.suggestion-card strong {
+  display: block;
+  font-size: 0.67rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+  font-weight: 700;
+}
+
+/* ══ EXAMPLES BAR ══════════════════════════════════════════════ */
+.examples-bar {
   padding: 8px 16px 10px;
   border-top: 1px solid var(--border);
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .examples-label {
-  font-size: 0.69rem;
+  font-size: 0.68rem;
   color: #94a3b8;
-  align-self: center;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .example-btn {
-  border: none;
+  border: 1px solid #e2e8f0;
   border-radius: 99px;
   padding: 3px 10px;
-  font-size: 0.72rem;
+  font-size: 0.70rem;
   cursor: pointer;
+  background: #f8fafc;
+  color: #475569;
+  font-family: inherit;
+  transition: border-color .15s, background .15s;
+}
+.conv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.btn-admin {
-  background: #f0f5ff;
+.btn-delete {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0 2px;
+}
+.example-btn:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
   color: #2563eb;
 }
 
-.btn-student {
-  background: #f0fdf4;
-  color: #166534;
-}
-.action-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #dbeafe; color: #1d4ed8;
-  padding: 2px 8px; border-radius: 99px;
-  font-size: 0.68rem; font-weight: 700;
-  margin-bottom: 4px;
-}
-.msg-bubble ul { margin: 6px 0 6px 16px; padding: 0; }
-.msg-bubble li { margin-bottom: 3px; font-size: 0.88rem; }
+/* ══ MARKDOWN STYLES IN BUBBLES ════════════════════════════════ */
+.msg-bubble ul  { margin: 6px 0 6px 16px; padding: 0; }
+.msg-bubble ol  { margin: 6px 0 6px 16px; padding: 0; }
+.msg-bubble li  { margin-bottom: 4px; font-size: 0.87rem; }
 .msg-bubble strong { font-weight: 700; }
+.msg-bubble em  { font-style: italic; color: #64748b; }
+.msg-bubble h3  { font-size: 0.9rem; font-weight: 700; margin: 10px 0 5px; color: #1e293b; }
+.msg-bubble hr  { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
+
 .msg-bubble code {
-  background: rgba(255,255,255,0.2); padding: 1px 5px;
-  border-radius: 4px; font-family: monospace; font-size: 0.85em;
+  background: #f0f5ff;
+  color: #1d4ed8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.83em;
 }
-.msg-row.assistant .msg-bubble code {
-  background: #f0f5ff; color: #1d4ed8;
+
+.msg-row.user .msg-bubble code {
+  background: rgba(255,255,255,.25);
+  color: #fff;
 }
+
+.msg-bubble table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 0.80rem;
+}
+.msg-bubble th {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 5px 10px;
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+}
+.msg-bubble td {
+  border: 1px solid #e2e8f0;
+  padding: 5px 10px;
+  color: #374151;
+}
+.msg-bubble tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+/* ══ WELCOME SCREEN TWEAKS ═════════════════════════════════════ */
+.chat-welcome .welcome-icon {
+  width: 56px; height: 56px;
+  font-size: 1.6rem;
+}
+.chat-welcome h4 { font-size: 1.1rem; margin: 8px 0 4px; }
+.chat-welcome p  { font-size: 0.85rem; color: #64748b; margin-bottom: 0; }
+
+/* ══ SPINNER ANIM ══════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="chat-layout" id="chatApp"
-     data-conv-id="{{ current_conv.pk|default:'' }}"
-     data-agent-type="{{ agent_type }}">
+     data-conv-id="{{ current_conv.pk|default:'' }}">
 
-  <!-- ══ PANNEAU GAUCHE ══ -->
+  <!-- ══════════════════════════════════════════════════
+       PANNEAU GAUCHE — Sidebar
+  ══════════════════════════════════════════════════ -->
   <div class="chat-sidebar">
 
-    <!-- Carte agent -->
+    <!-- Carte Agent Principal -->
     <div class="agent-card">
-      <div class="agent-avatar {% if agent_type == 'assistant_admin' %}admin-av{% else %}peda-av{% endif %}">
-        {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
+      <div class="agent-avatar admin-av" style="font-size:1.3rem">🤖
         <div class="agent-status"></div>
       </div>
-      <div class="agent-name">
-        {% if agent_type == 'assistant_admin' %}Assistant Administratif{% else %}Assistant Pédagogique{% endif %}
-      </div>
-      <div class="agent-desc">
-        {% if agent_type == 'assistant_admin' %}
-          Gestion sessions · Inscriptions · Stages · Statistiques
-        {% else %}
-          Notes · Moyennes · Absences · Emploi du temps
-        {% endif %}
-      </div>
+      <div class="agent-name">Assistant IA FSB</div>
+      <div class="agent-desc">Système multi-agent — détecte automatiquement votre demande</div>
 
-      <!-- Statut IA -->
-      <div class="api-status {% if has_api_key %}online{% else %}offline{% endif %}">
+      <!-- Statut -->
+      <div class="api-status {% if has_api_key %}online{% else %}offline{% endif %}" style="margin-top:8px">
         <i class="fas fa-circle" style="font-size:0.5rem"></i>
         {% if has_api_key %}
-          Grok — {{ tools_count }} actions disponibles
+          Groq / Llama 70B — Actif
         {% else %}
           Mode Hors-ligne
         {% endif %}
       </div>
 
-      <!-- Switch agents -->
-      <div class="switch-agents" style="margin-top:12px">
-        <a href="{% url 'ai_agents:chat' %}?agent=assistant_admin"
-           class="switch-btn {% if agent_type == 'assistant_admin' %}active{% endif %}">
-          <span class="sw-icon">🏛️</span> Admin
-        </a>
-        <a href="{% url 'ai_agents:chat' %}?agent=assistant_pedagogique"
-           class="switch-btn {% if agent_type == 'assistant_pedagogique' %}active{% endif %}">
-          <span class="sw-icon">📚</span> Pédagogique
-        </a>
+      <!-- Grille des agents -->
+      <div class="agents-grid">
+        <div class="agent-chip chip-admin">
+          <span class="chip-dot"></span> Administratif
+        </div>
+        <div class="agent-chip chip-pedago">
+          <span class="chip-dot"></span> Pédagogique
+        </div>
+        <div class="agent-chip chip-stage">
+          <span class="chip-dot"></span> Stages
+        </div>
+        <div class="agent-chip chip-stat">
+          <span class="chip-dot"></span> Statistiques
+        </div>
+        <div class="agent-chip chip-action">
+          <span class="chip-dot"></span> Actions &amp; Opérations
+        </div>
       </div>
     </div>
 
@@ -114,32 +316,53 @@
         <i class="fas fa-bolt me-1"></i> Actions Rapides
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
-        {% if agent_type == 'assistant_admin' %}
-        <button class="quick-btn" data-msg="Montre-moi les statistiques générales de la FSB" style="text-align:left;font-size:0.78rem">📊 Statistiques FSB</button>
-        <button class="quick-btn" data-msg="Crée une session principale S2 2024-2025 du 12 mai au 6 juin 2025" style="text-align:left;font-size:0.78rem">🎓 Créer session S2</button>
-        <button class="quick-btn" data-msg="Liste les demandes de stages en attente" style="text-align:left;font-size:0.78rem">📋 Stages en attente</button>
-        <button class="quick-btn" data-msg="Liste toutes les sessions d'examens" style="text-align:left;font-size:0.78rem">📅 Voir sessions</button>
-        <button class="quick-btn" data-msg="Liste les enseignants du département Informatique" style="text-align:left;font-size:0.78rem">👩‍🏫 Enseignants Info</button>
-        {% else %}
-        <button class="quick-btn" data-msg="Calcule les moyennes de la classe GL3-A pour le semestre 1" style="text-align:left;font-size:0.78rem">🧮 Calculer moyennes GL3-A</button>
-        <button class="quick-btn" data-msg="Affiche l'emploi du temps de la classe GL3-A" style="text-align:left;font-size:0.78rem">📅 EDT GL3-A</button>
-        <button class="quick-btn" data-msg="Montre les absences de la classe GL3-A" style="text-align:left;font-size:0.78rem">❌ Absences GL3-A</button>
-        <button class="quick-btn" data-msg="Statistiques générales FSB" style="text-align:left;font-size:0.78rem">📊 Statistiques</button>
-        {% endif %}
+        <button class="quick-btn" data-msg="Statistiques générales de la FSB" style="text-align:left;font-size:0.77rem">
+          📊 Statistiques FSB
+        </button>
+        <button class="quick-btn" data-msg="Quels étudiants risquent l'élimination avec 3 absences non justifiées ?" style="text-align:left;font-size:0.77rem">
+          ⛔ Calcul éliminations
+        </button>
+        <button class="quick-btn" data-msg="Liste toutes les demandes de stage en attente" style="text-align:left;font-size:0.77rem">
+          💼 Stages en attente
+        </button>
+        <button class="quick-btn" data-msg="Accepte toutes les demandes de stage en attente" style="text-align:left;font-size:0.77rem">
+          ✅ Valider tous les stages
+        </button>
+        <button class="quick-btn" data-msg="Génère le rapport des absences critiques avec seuil 2" style="text-align:left;font-size:0.77rem">
+          📋 Rapport absences
+        </button>
+        <button class="quick-btn" data-msg="Liste les enseignants actifs avec leur département" style="text-align:left;font-size:0.77rem">
+          👨‍🏫 Enseignants
+        </button>
       </div>
     </div>
 
-    <!-- Historique -->
+    <!-- Historique conversations -->
     <div class="history-panel">
       <div class="history-header">
         <i class="fas fa-history"></i> Conversations récentes
+        {% if conversations %}
+        <button onclick="clearAll()" title="Tout effacer"
+          style="margin-left:auto;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.7rem;padding:0">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        {% endif %}
       </div>
-      <div class="history-list">
+      <div class="history-list" id="historyList">
         {% for conv in conversations %}
-        <a href="{% url 'ai_agents:chat' %}?agent={{ conv.agent_type }}&conv={{ conv.pk }}"
-           class="history-item">
-          <div class="hi-title">{{ conv.titre|truncatechars:30 }}</div>
-          <div class="hi-time">{{ conv.created_at|date:"d/m H:i" }}</div>
+        <a href="{% url 'ai_agents:chat' %}?conv={{ conv.pk }}"
+           class="history-item {% if current_conv and current_conv.pk == conv.pk %}active{% endif %}"
+           id="hist-{{ conv.pk }}">
+          <div class="hi-title">{{ conv.titre|truncatechars:28 }}</div>
+          <div class="conv-header">
+  <div class="hi-time">{{ conv.created_at|date:"d/m H:i" }}</div>
+  <button 
+    class="btn-delete" 
+    data-conv-id="{{ conv.pk }}" 
+    title="Supprimer">
+    ✕
+  </button>
+</div>
         </a>
         {% empty %}
         <div style="padding:14px;text-align:center;font-size:0.79rem;color:#94a3b8">
@@ -149,77 +372,97 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- /chat-sidebar -->
 
-  <!-- ══ CHAT PRINCIPAL ══ -->
+
+  <!-- ══════════════════════════════════════════════════
+       CHAT PRINCIPAL
+  ══════════════════════════════════════════════════ -->
   <div class="chat-main">
 
+    <!-- Header chat -->
     <div class="chat-header">
-      <div class="ch-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
-        {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
-      </div>
-      <div>
-        <div class="ch-name">
-          {% if agent_type == 'assistant_admin' %}Assistant Administratif FSB{% else %}Assistant Pédagogique FSB{% endif %}
-        </div>
+      <div class="ch-icon admin" style="font-size:1.1rem">🤖</div>
+      <div style="flex:1">
+        <div class="ch-name">Assistant IA — Faculté des Sciences de Bizerte</div>
         <div class="ch-sub">
           {% if has_api_key %}
             <span style="color:#16a34a">●</span>
-            Agent IA actif — peut créer, modifier et consulter les données FSB
+            Agent actif · Groq Llama 70B · Lit et agit sur la base de données FSB
           {% else %}
             <span style="color:#d97706">●</span>
-            Mode hors-ligne — configurez ANTHROPIC_API_KEY pour les actions complètes
+            Mode hors-ligne — configurez GROQ_API_KEY pour activer les agents
           {% endif %}
         </div>
       </div>
-    </div>
+      <!-- Badge agent actif -->
+      <div class="active-agent-badge" id="agentBadge">
+        <span class="badge-dot"></span>
+        <span id="agentBadgeLabel">En attente…</span>
+      </div>
+    </div><!-- /chat-header -->
 
-    <!-- Messages -->
+    <!-- Zone messages -->
     <div class="chat-messages" id="chatMessages">
       {% csrf_token %}
 
       {% if not conv_messages %}
+      <!-- Écran de bienvenue -->
       <div class="chat-welcome" id="chatWelcome">
-        <div class="welcome-icon {% if agent_type == 'assistant_admin' %}admin{% else %}peda{% endif %}">
-          {% if agent_type == 'assistant_admin' %}🏛️{% else %}📚{% endif %}
-        </div>
-        <h4>
-          {% if agent_type == 'assistant_admin' %}Bonjour, {{ user.first_name }} !{% else %}Assistant Pédagogique{% endif %}
-        </h4>
+        <div class="welcome-icon admin" style="font-size:1.5rem">🤖</div>
+        <h4>Bonjour, {{ request.user.first_name|default:request.user.username }} !</h4>
         <p>
-          Je suis votre agent IA FSB. Je peux effectuer des <strong>actions réelles</strong> sur le système.<br>
-          <small style="color:#94a3b8">Demandez-moi de créer une session, valider un stage, calculer des moyennes...</small>
+          Je suis votre assistant IA multi-agent de la FSB.<br>
+          Je peux <strong>répondre à vos questions</strong> et <strong>exécuter des actions directement</strong> sur le système.
+          <br><small style="color:#94a3b8">Inscriptions · Notes · Stages · Absences · Rapports · et plus</small>
         </p>
-        <div class="quick-btns">
-          {% if agent_type == 'assistant_admin' %}
-          <button class="quick-btn" data-msg="Montre les statistiques de la FSB">📊 Stats FSB</button>
-          <button class="quick-btn" data-msg="Crée une session principale S2 2024-2025 du 12 mai au 6 juin 2025">🎓 Créer session S2</button>
-          <button class="quick-btn" data-msg="Liste les demandes de stages en attente">📋 Stages en attente</button>
-          <button class="quick-btn" data-msg="Cherche l'étudiant Trabelsi">🔍 Chercher étudiant</button>
-          <button class="quick-btn" data-msg="Donne-moi les infos du département Informatique">💻 Dept. Informatique</button>
-          {% else %}
-          <button class="quick-btn" data-msg="Calcule les moyennes de la classe GL3-A semestre 1">🧮 Moyennes GL3-A</button>
-          <button class="quick-btn" data-msg="Affiche l'emploi du temps de GL3-A semestre 1">📅 EDT GL3-A</button>
-          <button class="quick-btn" data-msg="Rapport d'absences classe GL3-A">❌ Absences</button>
-          <button class="quick-btn" data-msg="Statistiques générales">📊 Statistiques</button>
-          {% endif %}
+        <div class="suggestions-grid quick-btns">
+          <button class="suggestion-card quick-btn" data-msg="Combien d'étudiants sont inscrits par filière ?">
+            <strong>📊 Statistiques</strong>
+            Étudiants inscrits par filière
+          </button>
+          <button class="suggestion-card quick-btn" data-msg="Quels étudiants risquent l'élimination par absences non justifiées ?">
+            <strong>⚠️ Absences critiques</strong>
+            Étudiants à risque d'élimination
+          </button>
+          <button class="suggestion-card quick-btn" data-msg="Accepte toutes les demandes de stage en attente automatiquement">
+            <strong>✅ Action rapide</strong>
+            Valider les stages en attente
+          </button>
+          <button class="suggestion-card quick-btn" data-msg="Génère le rapport complet des absences critiques, seuil 2 absences non justifiées">
+            <strong>📋 Rapport</strong>
+            Rapport absences critiques
+          </button>
+          <button class="suggestion-card quick-btn" data-msg="Quelles sont les moyennes des étudiants du semestre 1 de l'année 2024-2025 ?">
+            <strong>📈 Pédagogie</strong>
+            Moyennes par semestre
+          </button>
+          <button class="suggestion-card quick-btn" data-msg="Liste tous les enseignants actifs avec leur département et spécialité">
+            <strong>👨‍🏫 Personnel</strong>
+            Enseignants par département
+          </button>
         </div>
       </div>
       {% endif %}
 
-      <!-- Messages existants -->
+      <!-- Messages existants (conversation chargée) -->
       {% for msg in conv_messages %}
-      <div class="msg-row {{ msg.role }}">
+      <div class="msg-row {{ msg.role }}" style="animation:fadeUp .3s ease both">
         <div class="msg-av {% if msg.role == 'user' %}user-av{% else %}bot-av{% endif %}">
           {% if msg.role == 'user' %}
-            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
           {% else %}
             🤖
           {% endif %}
         </div>
         <div>
-          <div class="msg-bubble" id="bubble-{{ forloop.counter }}">
-            {{ msg.contenu|linebreaksbr }}
+          {% if msg.role == 'assistant' %}
+          <div class="agent-tag tag-admin">
+            <i class="fas fa-robot" style="font-size:.6rem"></i> Agent FSB
+          </div>
+          {% endif %}
+          <div class="msg-bubble" {% if msg.role == 'assistant' %}data-md="true"{% endif %}>
+            {{ msg.contenu }}
           </div>
           <div class="msg-time">{{ msg.timestamp|date:"H:i" }}</div>
         </div>
@@ -231,7 +474,8 @@
         <div class="msg-av bot-av">🤖</div>
         <div>
           <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px">
-            <i class="fas fa-cog fa-spin me-1"></i> Agent en cours d'action...
+            <i class="fas fa-cog fa-spin me-1"></i>
+            <span id="typingLabel">Agent en cours d'analyse…</span>
           </div>
           <div class="typing-bubble">
             <div class="typing-dot"></div>
@@ -240,96 +484,295 @@
           </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- /chat-messages -->
 
     <!-- Zone de saisie -->
     <div class="chat-input-area">
       <textarea
         id="chatInput"
         class="chat-textarea"
-        placeholder="Demandez une action ou posez une question... (Ex: 'Crée une session d'examen S2 du 12 mai au 6 juin')"
+        placeholder="Posez une question ou demandez une action… (Ex: &quot;Inscris Mehdi Ben Ali dans la filière Informatique&quot;)"
         rows="1"
       ></textarea>
-      <button class="send-btn" onclick="sendMessage()" title="Envoyer (Entrée)">
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Envoyer (Entrée)">
         <i class="fas fa-paper-plane"></i>
       </button>
     </div>
 
-    <!-- Exemples d'actions -->
+    <!-- Barre d'exemples -->
     <div class="examples-bar">
-  <span class="examples-label">Exemples :</span>
-  {% if agent_type == 'assistant_admin' %}
-    <button class="example-btn btn-admin" data-msg="Crée une session de rattrapage S1 du 10 au 21 février 2025">Créer session</button>
-    <button class="example-btn btn-admin" data-msg="Valide l'inscription de l'étudiant 20240001">Valider inscription</button>
-    <button class="example-btn btn-admin" data-msg="Liste les enseignants du département Mathématiques">Lister enseignants</button>
-  {% else %}
-    <button class="example-btn btn-student" data-msg="Calcule les moyennes GL3-A S1 2024-2025">Calculer moyennes</button>
-    <button class="example-btn btn-student" data-msg="Affiche l'emploi du temps de ISI3-A semestre 1">Voir EDT</button>
-    <button class="example-btn btn-student" data-msg="Rapport absences de la classe GL3-A">Absences</button>
-  {% endif %}
-</div>
+      <span class="examples-label">Exemples :</span>
+      <button class="example-btn" data-msg="Calcule quels étudiants seraient éliminés avec 3 absences non justifiées">⛔ Calcul éliminations</button>
+      <button class="example-btn" data-msg="Accepte toutes les demandes de stage en attente">✅ Valider stages</button>
+      <button class="example-btn" data-msg="Rapport des absences critiques seuil 2">📋 Rapport absences</button>
+      <button class="example-btn" data-msg="Inscris Ahmed Trabelsi dans la filière Informatique">📝 Inscrire étudiant</button>
+      <button class="example-btn" data-msg="Statistiques générales de la faculté">📊 Statistiques</button>
+    </div>
 
-  </div>
-</div>
+  </div><!-- /chat-main -->
+
+</div><!-- /chat-layout -->
 {% endblock %}
+
 
 {% block extra_js %}
 <script src="{% static 'js/chat.js' %}"></script>
 <script>
-function setMsg(text) {
-  const input = document.getElementById('chatInput');
-  if (input) {
-    input.value = text;
-    input.focus();
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-  }
+// ── CONSTANTES ─────────────────────────────────────────────────
+const CSRF       = "{{ csrf_token }}";
+const SEND_URL   = "{% url 'ai_agents:send_message' %}";
+const DELETE_URL = "{% url 'ai_agents:delete_conversation' 0 %}";
+const CLEAR_URL  = "{% url 'ai_agents:clear_all' %}";
+let currentConvId = "{{ current_conv.pk|default:'' }}" || null;
+let isLoading     = false;
+
+// ── AGENT METADATA ──────────────────────────────────────────────
+const AGENTS = {
+  admin:  { label: 'Agent Administratif', icon: '🏛️', tagCls: 'tag-admin',  badgeCls: 'badge-admin'  },
+  pedago: { label: 'Agent Pédagogique',   icon: '📚', tagCls: 'tag-pedago', badgeCls: 'badge-pedago' },
+  stage:  { label: 'Agent Stages',        icon: '💼', tagCls: 'tag-stage',  badgeCls: 'badge-stage'  },
+  stat:   { label: 'Agent Statistiques',  icon: '📊', tagCls: 'tag-stat',   badgeCls: 'badge-stat'   },
+  action: { label: 'Agent Actions',       icon: '⚡', tagCls: 'tag-action', badgeCls: 'badge-action' },
+};
+
+// ── MARKDOWN RENDERER ───────────────────────────────────────────
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // Restaurer les caractères spéciaux intentionnels
+    .replace(/&lt;strong&gt;/g,'<strong>').replace(/&lt;\/strong&gt;/g,'</strong>')
+    // Markdown
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+    .replace(/`([^`]+)`/g,     '<code>$1</code>')
+    .replace(/^### (.+)$/gm,   '<h3>$1</h3>')
+    .replace(/^---$/gm,        '<hr>')
+    .replace(/^[•\-] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g,   '<br>');
+}
+
+function escapeHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".example-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      setMsg(btn.dataset.msg);
+  document.querySelectorAll(".btn-delete").forEach(button => {
+    button.addEventListener("click", (event) => {
+      const convId = button.dataset.convId;
+      deleteConv(event, convId);
     });
   });
 });
-// Rendu markdown simple pour les réponses
-function renderMarkdown(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code>$1</code>')
-    .replace(/^• (.+)$/gm, '<li>$1</li>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/\n/g, '<br>');
+
+// ── UPDATE AGENT BADGE ──────────────────────────────────────────
+function updateBadge(agent, action) {
+  const info  = AGENTS[agent] || AGENTS.admin;
+  const badge = document.getElementById('agentBadge');
+  const label = document.getElementById('agentBadgeLabel');
+  badge.className = 'active-agent-badge ' + info.badgeCls;
+  label.textContent = action
+    ? `${info.icon} ${info.label} · ${action}`
+    : `${info.icon} ${info.label}`;
 }
 
-// Override appendMessage pour supporter le markdown
-const _origAppend = window.appendMessage;
-window.appendMessage = function(role, text) {
+// ── TYPING INDICATOR ────────────────────────────────────────────
+function showTyping(msg) {
+  const t = document.getElementById('typingIndicator');
+  const l = document.getElementById('typingLabel');
+  if (l) l.textContent = msg || 'Agent en cours d\'analyse…';
+  t.style.display = 'flex';
+  scrollChat();
+}
+
+function hideTyping() {
+  document.getElementById('typingIndicator').style.display = 'none';
+}
+
+// ── APPEND MESSAGE ──────────────────────────────────────────────
+function appendMessage(role, text, agentKey) {
+  // Cacher le welcome screen si présent
+  const welcome = document.getElementById('chatWelcome');
+  if (welcome) welcome.remove();
+
+  const info = AGENTS[agentKey] || AGENTS.admin;
   const container = document.getElementById('chatMessages');
-  if (!container) return;
-  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-  const initials = role === 'user' ? getUserInitials() : '🤖';
+  const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  // Initiales utilisateur
+  const userInitials = getUserInitials ? getUserInitials() : 'ME';
+
   const row = document.createElement('div');
   row.className = `msg-row ${role}`;
-  row.style.animation = 'fadeUp 0.3s ease both';
-  const avatarHTML = role === 'user'
-    ? `<div class="msg-av user-av">${initials}</div>`
-    : `<div class="msg-av bot-av" style="font-size:1rem">${initials}</div>`;
-  const renderedText = role === 'assistant' ? renderMarkdown(text) : escapeHtml(text).replace(/\n/g,'<br>');
-  row.innerHTML = `${avatarHTML}<div><div class="msg-bubble">${renderedText}</div><div class="msg-time">${now}</div></div>`;
-  const typing = document.getElementById('typingIndicator');
-  if (typing) container.insertBefore(row, typing);
-  else container.appendChild(row);
-  scrollChat();
-};
+  row.style.animation = 'fadeUp .3s ease both';
 
-// Rendu des bulles existantes
+  const avatarHTML = role === 'user'
+    ? `<div class="msg-av user-av">${userInitials}</div>`
+    : `<div class="msg-av bot-av" style="font-size:1rem">${info.icon}</div>`;
+
+  const agentTagHTML = role === 'assistant'
+    ? `<div class="agent-tag ${info.tagCls}">
+         <i class="fas fa-robot" style="font-size:.6rem"></i> ${info.label}
+       </div>`
+    : '';
+
+  const content = role === 'assistant'
+    ? renderMarkdown(text)
+    : escapeHtml(text).replace(/\n/g, '<br>');
+
+  row.innerHTML = `
+    ${avatarHTML}
+    <div>
+      ${agentTagHTML}
+      <div class="msg-bubble">${content}</div>
+      <div class="msg-time">${now}</div>
+    </div>
+  `;
+
+  const typing = document.getElementById('typingIndicator');
+  container.insertBefore(row, typing);
+  scrollChat();
+}
+
+function scrollChat() {
+  const c = document.getElementById('chatMessages');
+  c.scrollTop = c.scrollHeight;
+}
+
+// ── SEND MESSAGE ────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg   = input.value.trim();
+  if (!msg || isLoading) return;
+
+  isLoading = true;
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendMessage('user', msg, null);
+  showTyping('Analyse de votre demande…');
+
+  try {
+    const res  = await fetch(SEND_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body:    JSON.stringify({ message: msg, conversation_id: currentConvId }),
+    });
+
+    const data = await res.json();
+    hideTyping();
+
+    if (data.error) {
+      appendMessage('assistant', '❌ Erreur : ' + data.error, 'admin');
+    } else {
+      appendMessage('assistant', data.response, data.agent_used || 'admin');
+      updateBadge(data.agent_used, data.action_taken);
+
+      // Ajouter dans l'historique sidebar si nouvelle conv
+      if (!currentConvId) {
+        currentConvId = data.conversation_id;
+        addToHistory(data.conversation_id, msg);
+      }
+    }
+
+  } catch (err) {
+    hideTyping();
+    appendMessage('assistant', '❌ Erreur de connexion. Vérifiez votre réseau.', 'admin');
+  }
+
+  isLoading = false;
+  btn.disabled = false;
+  input.focus();
+}
+
+// ── AJOUTER CONV DANS SIDEBAR ───────────────────────────────────
+function addToHistory(id, titre) {
+  const list  = document.getElementById('historyList');
+  const empty = list.querySelector('[style*="text-align:center"]');
+  if (empty) empty.remove();
+
+  const a = document.createElement('a');
+  a.href      = `?conv=${id}`;
+  a.className = 'history-item active';
+  a.id        = `hist-${id}`;
+  a.innerHTML = `
+    <div class="hi-title">${titre.substring(0, 28)}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="hi-time">maintenant</div>
+      <button onclick="deleteConv(event,${id})"
+        style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:.65rem;padding:0 2px"
+        title="Supprimer">✕</button>
+    </div>
+  `;
+  // Désactiver les autres
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+  list.prepend(a);
+}
+
+// ── SUPPRIMER UNE CONV ──────────────────────────────────────────
+async function deleteConv(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!confirm('Supprimer cette conversation ?')) return;
+
+  const url = DELETE_URL.replace('/0/', `/${id}/`);
+  await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
+
+  const el = document.getElementById(`hist-${id}`);
+  if (el) el.remove();
+
+  if (String(currentConvId) === String(id)) {
+    window.location.href = "{% url 'ai_agents:chat' %}";
+  }
+}
+
+// ── TOUT EFFACER ────────────────────────────────────────────────
+async function clearAll() {
+  if (!confirm('Supprimer toutes les conversations ?')) return;
+  await fetch(CLEAR_URL, { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
+  window.location.href = "{% url 'ai_agents:chat' %}";
+}
+
+// ── TEXTAREA AUTO-RESIZE + ENTER ────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.msg-row.assistant .msg-bubble').forEach(el => {
-    el.innerHTML = renderMarkdown(el.innerText);
+  const input = document.getElementById('chatInput');
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
+
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  });
+
+  // Boutons quick-btn et example-btn → remplissent le textarea
+  document.querySelectorAll('.quick-btn, .example-btn, .suggestion-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const msg = btn.dataset.msg;
+      if (msg) {
+        input.value = msg;
+        input.focus();
+        input.dispatchEvent(new Event('input'));
+      }
+    });
+  });
+
+  // Rendu markdown des bulles chargées depuis la BD
+  document.querySelectorAll('[data-md="true"]').forEach(el => {
+    el.innerHTML = renderMarkdown(el.textContent || el.innerText);
+  });
+
+  // Scroll initial
+  scrollChat();
+  input.focus();
 });
 </script>
 {% endblock %}

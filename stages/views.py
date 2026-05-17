@@ -245,6 +245,70 @@ def generer_diplome(request, etudiant_id):
         'stage_pfe': stage_pfe,
     })
 
+from django.utils import timezone
+
+@login_required
+def ajouter_diplome(request):
+    if request.method == 'POST':
+        try:
+            etudiant_id      = request.POST['etudiant']
+            type_diplome     = request.POST['type_diplome']
+            specialite       = request.POST['specialite']
+            annee_obtention  = request.POST['annee_obtention']
+            mention          = request.POST.get('mention', '')
+            moyenne_raw      = request.POST.get('moyenne', '').strip()
+            numero_diplome   = request.POST['numero_diplome']
+            date_delivrance  = request.POST.get('date_delivrance') or None
+
+            # Vérifier qu'un diplôme n'existe pas déjà
+            etudiant = get_object_or_404(Etudiant, pk=etudiant_id)
+            if Diplome.objects.filter(etudiant=etudiant, type_diplome=type_diplome).exists():
+                messages.warning(
+                    request,
+                    f"Un diplôme de type « {type_diplome} » existe déjà pour {etudiant.get_full_name()}."
+                )
+                return redirect('stages:ajouter_diplome')
+
+            diplome = Diplome.objects.create(
+                etudiant_id      = etudiant_id,
+                type_diplome     = type_diplome,
+                specialite       = specialite,
+                annee_obtention  = annee_obtention,
+                mention          = mention,
+                moyenne_generale = float(moyenne_raw) if moyenne_raw else None,
+                numero_diplome   = numero_diplome,
+                date_delivrance  = date_delivrance,
+            )
+
+            # Mettre le statut étudiant à "diplômé"
+            etudiant.statut = 'diplome'
+            etudiant.save()
+
+            messages.success(
+                request,
+                f"✅ Diplôme enregistré pour {etudiant.get_full_name()} — N° {numero_diplome}"
+            )
+            return redirect('stages:diplome_officiel', pk=diplome.pk)
+
+        except KeyError as e:
+            messages.error(request, f"Champ manquant : {e}")
+        except ValueError as e:
+            messages.error(request, f"Valeur invalide : {e}")
+        except Exception as e:
+            messages.error(request, f"Erreur : {e}")
+
+    # ── GET ───────────────────────────────────────────────────
+    annee_courante = timezone.now().year
+    annees = list(range(annee_courante, annee_courante - 10, -1))
+
+    return render(request, 'stages/ajouter_diplome.html', {
+        'etudiants':     Etudiant.objects.filter(
+                             statut__in=['inscrit', 'diplome']
+                         ).select_related('filiere').order_by('nom', 'prenom'),
+        'annees':        annees,
+        'annee_courante': annee_courante,
+        'today':         timezone.now().date().isoformat(),
+    })
 
 @login_required
 def diplome_officiel(request, pk):

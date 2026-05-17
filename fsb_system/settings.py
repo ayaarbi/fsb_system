@@ -76,5 +76,4 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-#GEMINI_API_KEY = 'coller votre API KEY de Gemini ici'  
-#GROQ_API_KEY = 'coller votre API KEY de Groq ici' 
+#GROQ_API_KEY = 'coller votre API KEY de Groq ici'

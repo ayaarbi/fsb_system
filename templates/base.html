@@ -91,23 +91,23 @@
                 class="sidebar-link {% if 'planning' in request.path %}active{% endif %}">
                 <span class="s-icon"><i class="fas fa-calendar-check"></i></span>Planning
             </a>
-            <a href="{% url 'examens:resultats' %}"
+            <!-- <a href="{% url 'examens:resultats' %}"
                 class="sidebar-link {% if 'resultats' in request.path %}active{% endif %}">
                 <span class="s-icon"><i class="fas fa-chart-bar"></i></span>Résultats
-            </a>
+            </a> -->
 
             <span class="nav-section">Stages & Diplômes</span>
             <a href="{% url 'stages:demandes' %}"
                 class="sidebar-link {% if 'demandes' in request.path %}active{% endif %}">
                 <span class="s-icon"><i class="fas fa-briefcase"></i></span>Demandes Stage
             </a>
-            <a href="{% url 'stages:diplomes' %}"
+            <!-- <a href="{% url 'stages:diplomes' %}"
                 class="sidebar-link {% if 'diplomes' in request.path %}active{% endif %}">
                 <span class="s-icon"><i class="fas fa-scroll"></i></span>Diplômes
-            </a>
+            </a> -->
             <a href="{% url 'stages:eligibles_diplome' %}"
                 class="sidebar-link {% if 'eligibles' in request.path %}active{% endif %}">
-                <span class="s-icon"><i class="fas fa-graduation-cap"></i></span>Éligibles Diplôme
+                <span class="s-icon"><i class="fas fa-graduation-cap"></i></span>Diplômes
             </a>
 
             <span class="nav-section">Intelligence Artificielle</span>

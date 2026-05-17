@@ -57,57 +57,61 @@
 <div class="row g-3">
 
   <!-- ── COLONNE GAUCHE : Infos ── -->
-  <div class="col-lg-3">
+  <div class="col-lg-6">
     <div class="card-fsb fu">
-      <div class="card-fsb-body" style="text-align:center;padding:28px">
-        <div style="width:80px;height:80px;border-radius:20px;
-                    background:linear-gradient(135deg,#0c4a6e,#0284c7);
-                    display:flex;align-items:center;justify-content:center;
-                    color:white;font-size:2rem;font-weight:800;margin:0 auto 16px;
-                    box-shadow:0 6px 20px rgba(2,132,199,0.25)">
-          {{ enseignant.prenom|first|upper }}{{ enseignant.nom|first|upper }}
-        </div>
-        <div style="font-size:1.05rem;font-weight:800;color:#0b1e3d">
-          {{ enseignant.prenom }} {{ enseignant.nom }}
-        </div>
-        <div style="margin-top:8px">
-          <span class="badge-pill
-            {% if enseignant.grade == 'professeur' %}b-purple
-            {% elif enseignant.grade == 'maitre_conf' %}b-blue
-            {% elif enseignant.grade == 'maitre_assistant' %}b-cyan
-            {% else %}b-gray{% endif %}">
-            {{ enseignant.get_grade_display }}
-          </span>
-        </div>
-        {% if not enseignant.actif %}
-        <div style="margin-top:6px"><span class="badge-pill b-red">Inactif</span></div>
-        {% endif %}
-        <hr style="margin:16px 0;border-color:#e2eaf6">
-        <div style="text-align:left;font-size:0.82rem">
-          {% for label, val in info_list %}{% endfor %}
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span style="color:#94a3b8">Matricule</span>
-            <code
-              style="background:#f0f5ff;color:#1d4ed8;padding:2px 7px;border-radius:5px;font-size:0.77rem">{{ enseignant.matricule }}</code>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span style="color:#94a3b8">Département</span>
-            <span style="font-weight:600;color:#334155">{{ enseignant.departement|default:"—" }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span style="color:#94a3b8">Spécialité</span>
-            <span style="font-weight:600;color:#334155;font-size:0.78rem;text-align:right;max-width:120px">{{
-              enseignant.specialite|default:"—" }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span style="color:#94a3b8">Email</span>
-            <span style="font-weight:600;color:#334155;font-size:0.75rem">{{ enseignant.email|default:"—" }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between">
-            <span style="color:#94a3b8">Tél.</span>
-            <span style="font-weight:600;color:#334155">{{ enseignant.telephone|default:"—" }}</span>
-          </div>
-        </div>
+      <div style="text-align:left;font-size:0.82rem;padding:30px;">
+
+  <!-- Matricule -->
+  <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+    <div style="color:#94a3b8;font-size:0.70rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+      Matricule
+    </div>
+    <code style="background:#f0f5ff;color:#1d4ed8;padding:2px 8px;border-radius:5px;font-size:0.77rem">
+      {{ enseignant.matricule }}
+    </code>
+  </div>
+
+  <!-- Département -->
+  <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+    <div style="color:#94a3b8;font-size:0.70rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+      Département
+    </div>
+    <div style="font-weight:600;color:#0b1e3d;font-size:0.83rem">
+      {{ enseignant.departement|default:"—" }}
+    </div>
+  </div>
+
+  <!-- Spécialité -->
+  <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+    <div style="color:#94a3b8;font-size:0.70rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+      Spécialité
+    </div>
+    <div style="font-weight:600;color:#0b1e3d;font-size:0.83rem;line-height:1.4">
+      {{ enseignant.specialite|default:"—" }}
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+    <div style="color:#94a3b8;font-size:0.70rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+      Email
+    </div>
+    <div style="font-weight:600;color:#0b1e3d;font-size:0.80rem;word-break:break-all">
+      {{ enseignant.email|default:"—" }}
+    </div>
+  </div>
+
+  <!-- Téléphone -->
+  <div>
+    <div style="color:#94a3b8;font-size:0.70rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+      Téléphone
+    </div>
+    <div style="font-weight:600;color:#0b1e3d;font-size:0.83rem">
+      {{ enseignant.telephone|default:"—" }}
+    </div>
+  </div>
+
+</div>
       </div>
     </div>
   </div>

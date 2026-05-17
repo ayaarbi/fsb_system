@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-FSB Multi-Agent System - CORRIGÉ
+FSB Multi-Agent System
 """
 
 import json
@@ -44,7 +44,7 @@ def _groq_json(messages, system):
 
 
 # ──────────────────────────────────────────────
-# PARSER AMÉLIORÉ
+# PARSER 
 # ──────────────────────────────────────────────
 
 def extraire_champ(cles, msg, param_val=""):
@@ -107,7 +107,7 @@ def extraire_tous_champs(msg):
 
 
 # ──────────────────────────────────────────────
-# CONTEXT BUILDER (inchangé)
+# CONTEXT BUILDER 
 # ──────────────────────────────────────────────
 
 def build_full_context(user=None):
@@ -299,7 +299,7 @@ def compress_context(ctx):
 
 
 # ──────────────────────────────────────────────
-# ROUTER (inchangé)
+# ROUTER 
 # ──────────────────────────────────────────────
 
 ROUTER_SYSTEM = """
@@ -343,7 +343,7 @@ def router_agent(messages, ctx_json):
 
 
 # ──────────────────────────────────────────────
-# AGENTS INFORMATIFS (inchangés)
+# AGENTS INFORMATIFS 
 # ──────────────────────────────────────────────
 
 def stat_agent(messages, ctx):

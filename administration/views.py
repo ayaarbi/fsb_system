@@ -12,6 +12,8 @@ import base64
 from django.http import HttpResponse
 from django.utils import timezone
 from django.template.loader import render_to_string
+from django.utils import timezone
+
 
 # ──────────────────────────────────────────
 # DASHBOARD
@@ -221,12 +223,15 @@ def dashboard(request):
         'ci':       Filiere.objects.filter(type_formation='ci').count(),
     }
 
-    sessions_recentes = SessionExamen.objects.order_by('-date_debut')[:3]
+    #sessions_recentes = SessionExamen.objects.order_by('-date_debut')[:3]
 
+    sessions = SessionExamen.objects.filter(
+        date_fin__gte=timezone.now().date()
+    ).order_by('date_debut')
     return render(request, 'administration/dashboard.html', {
         'stats':      stats,
         'formations': formations,
-        'sessions':   sessions_recentes,
+        'sessions':   sessions,
     })
 
 

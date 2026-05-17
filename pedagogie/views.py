@@ -153,15 +153,37 @@ def edt_filieres(request, dept_id):
 def edt_classes(request, dept_id, filiere_id):
     dept    = get_object_or_404(Departement, pk=dept_id)
     filiere = get_object_or_404(Filiere, pk=filiere_id)
-    classes = filiere.classes.all().order_by('niveau','nom')
+    classes = filiere.classes.all().order_by('niveau', 'nom')
+
     cl_data = []
     for cl in classes:
-        nb = cl.seances.count()
-        cl_data.append({'classe': cl, 'nb_seances': nb})
-    return render(request, 'pedagogie/edt/nav_classes.html', {
-        'dept': dept, 'filiere': filiere, 'cl_data': cl_data
-    })
+        seances  = cl.seances.all()
+        nb_total = seances.count()
 
+        # Comptage par type de séance
+        nb_cours = seances.filter(type_seance='cours').count()
+        nb_td    = seances.filter(type_seance='td').count()
+        nb_tp    = seances.filter(type_seance='tp').count()
+
+        # Matières liées à la filière (pour le select du modal)
+        matieres = Matiere.objects.filter(filiere=filiere)
+
+        cl_data.append({
+            'classe':     cl,
+            'nb_seances': nb_total,
+            'nb_cours':   nb_cours,
+            'nb_td':      nb_td,
+            'nb_tp':      nb_tp,
+            'matieres':   matieres,
+        })
+
+    return render(request, 'pedagogie/edt/nav_classes.html', {
+        'dept':        dept,
+        'filiere':     filiere,
+        'cl_data':     cl_data,
+        'enseignants': Enseignant.objects.filter(departement=dept, actif=True),
+        'salles':      Salle.objects.all().order_by('type_salle', 'nom'),
+    })
 
 @login_required
 def edt_classe_detail(request, classe_id):
@@ -169,34 +191,48 @@ def edt_classe_detail(request, classe_id):
     dept     = classe.filiere.departement
     semestre = int(request.GET.get('semestre', 1))
 
-    seances  = EmploiDuTemps.objects.filter(
+    seances = EmploiDuTemps.objects.filter(
         classe=classe, semestre=semestre
-    ).select_related('matiere','enseignant','salle').order_by('jour','heure_debut')
+    ).select_related('matiere', 'enseignant', 'salle').order_by('jour', 'heure_debut')
 
-    JOURS = {1:'Lundi',2:'Mardi',3:'Mercredi',4:'Jeudi',5:'Vendredi',6:'Samedi'}
-    HORAIRES = ['08:00','09:30','11:00','13:30','15:00','16:30']
+    JOURS = {1:'Lundi', 2:'Mardi', 3:'Mercredi', 4:'Jeudi', 5:'Vendredi', 6:'Samedi'}
+    HORAIRES = ['08:00', '09:30', '11:00', '13:30', '15:00', '16:30']
 
-    # Grille emploi du temps
-    grille = {j: {} for j in JOURS.keys()}
+    # ── Grille [jour][heure] → liste de séances ───────────────
+    # Initialiser toutes les cellules à vide
+    grille = {j: {h: [] for h in HORAIRES} for j in JOURS.keys()}
+
     for s in seances:
-        h = s.heure_debut.strftime('%H:%M')
-        if h not in grille[s.jour]:
-            grille[s.jour][h] = []
-        grille[s.jour][h].append(s)
+        h_str = s.heure_debut.strftime('%H:%M')
+        if s.jour in grille and h_str in grille[s.jour]:
+            grille[s.jour][h_str].append(s)
+
+    # ── Comptages par type ────────────────────────────────────
+    nb_cours = seances.filter(type_seance='cours').count()
+    nb_td    = seances.filter(type_seance='td').count()
+    nb_tp    = seances.filter(type_seance='tp').count()
+
+    # ── Matières de la filière pour le select du modal ────────
+    matieres = Matiere.objects.filter(filiere=classe.filiere)
+
+    # ── Enseignants du département ────────────────────────────
+    enseignants = Enseignant.objects.filter(departement=dept, actif=True).order_by('nom')
 
     return render(request, 'pedagogie/edt/classe_detail.html', {
-        'classe':    classe,
-        'dept':      dept,
-        'semestre':  semestre,
-        'seances':   seances,
-        'grille':    grille,
-        'jours':     JOURS,
-        'horaires':  HORAIRES,
-        'matieres':  Matiere.objects.filter(filiere=classe.filiere, semestre=semestre),
-        'enseignants': Enseignant.objects.filter(departement=dept, actif=True),
-        'salles':    Salle.objects.all(),
+        'classe':      classe,
+        'dept':        dept,
+        'semestre':    semestre,
+        'seances':     seances,
+        'grille':      grille,
+        'jours':       JOURS,
+        'horaires':    HORAIRES,
+        'nb_cours':    nb_cours,
+        'nb_td':       nb_td,
+        'nb_tp':       nb_tp,
+        'matieres':    matieres,
+        'enseignants': enseignants,
+        'salles':      Salle.objects.all().order_by('type_salle', 'nom'),
     })
-
 
 @login_required
 def ajouter_seance(request):
